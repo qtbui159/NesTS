@@ -13,6 +13,9 @@ class StatusRegister extends RegisterBase {
     this.updateBit(0, value);
   }
 
+  /**
+   * 零标志
+   */
   get Z(): number {
     return BitUtils.get(this.m_Value, 1);
   }
