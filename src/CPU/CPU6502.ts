@@ -54,8 +54,36 @@ class CPU6502 implements ICPU6502 {
       this.m_OpCodeMapFunction = new Map<number, OpFunction>();
     }
 
-    this.batchAdd(this.and, 0x29, 0x25, 0x35, 0x2D, 0x3D, 0x39, 0x21, 0x31);
-    this.batchAdd(this.asl, 0x0A, 0x06, 0x16, 0x0E, 0x1E);
+    this.batchAdd(this.adc, 0x69, 0x65, 0x75, 0x6D, 0x7D, 0x79, 0x61, 0x71);
+    this.batchAdd(this.and, 0x29, 0x25, 0x35, 0x2d, 0x3d, 0x39, 0x21, 0x31);
+    this.batchAdd(this.asl, 0x0a, 0x06, 0x16, 0x0e, 0x1e);
+    this.batchAdd(this.bcc, 0x90);
+    this.batchAdd(this.bcs, 0xb0);
+    this.batchAdd(this.beq, 0xf0);
+    this.batchAdd(this.bit, 0x24, 0x2c);
+    this.batchAdd(this.bmi, 0x30);
+    this.batchAdd(this.bne, 0xd0);
+    this.batchAdd(this.bpl, 0x10);
+    this.batchAdd(this.brk, 0x00);
+    this.batchAdd(this.bvc, 0x50);
+    this.batchAdd(this.bvs, 0x70);
+    this.batchAdd(this.clc, 0x18);
+    this.batchAdd(this.cld, 0xd8);
+    this.batchAdd(this.cli, 0x58);
+    this.batchAdd(this.clv, 0xb8);
+    this.batchAdd(this.cmp, 0xc9, 0xc5, 0xd5, 0xcd, 0xdd, 0xd9, 0xc1, 0xd1);
+    this.batchAdd(this.cpx, 0xe0, 0xe4, 0xec);
+    this.batchAdd(this.cpy, 0xc0, 0xc4, 0xcc);
+    this.batchAdd(this.dec, 0xc6, 0xd6, 0xce, 0xde);
+    this.batchAdd(this.dex, 0xca);
+    this.batchAdd(this.dey, 0x88);
+    this.batchAdd(this.eor, 0x49, 0x45, 0x55, 0x4d, 0x5d, 0x59, 0x41, 0x51);
+    this.batchAdd(this.inc, 0xe6, 0xf6, 0xee, 0xfe);
+    this.batchAdd(this.inx, 0xe8);
+    this.batchAdd(this.iny, 0xc8);
+    this.batchAdd(this.jmp, 0x4c, 0x6c);
+    this.batchAdd(this.jsr, 0x20);
+    this.batchAdd(this.lda, 0xa9, 0xa5, 0xb5, 0xad, 0xbd, 0xb9, 0xa1, 0xb1);
   }
 
   batchAdd(func: OpFunction, ...opCodes: number[]) {
@@ -87,95 +115,85 @@ class CPU6502 implements ICPU6502 {
     throw new Error("Method not implemented.");
   }
 
-  adc(): void { }
+  adc(opCode: number): void {}
 
   and(opCode: number): void {
     let addr: number;
     if (opCode == 0x29) {
       addr = this.immediateAddressing();
       this.Cycles += 2;
-    }
-    else if (opCode == 0x25) {
+    } else if (opCode == 0x25) {
       addr = this.zeroPageAddressing();
       this.Cycles += 3;
-    }
-    else if (opCode == 0x35) {
+    } else if (opCode == 0x35) {
       addr = this.zeroPageXAddressing();
       this.Cycles += 4;
-    }
-    else if (opCode == 0x2D) {
+    } else if (opCode == 0x2d) {
       addr = this.absoluteAddressing();
       this.Cycles += 4;
-    }
-    else if (opCode == 0x3D) {
-      const { addr: tmpAddr, isCrossPage: crossPage } = this.absoluteXAddressing();
+    } else if (opCode == 0x3d) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.absoluteXAddressing();
       addr = tmpAddr;
       this.Cycles += 4;
       if (crossPage) {
         this.Cycles += 1;
       }
-    }
-    else if (opCode == 0x39) {
-      const { addr: tmpAddr, isCrossPage: crossPage } = this.absoluteYAddressing();
+    } else if (opCode == 0x39) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.absoluteYAddressing();
       addr = tmpAddr;
       this.Cycles += 4;
       if (crossPage) {
         this.Cycles += 1;
       }
-    }
-    else if (opCode == 0x21) {
+    } else if (opCode == 0x21) {
       addr = this.indexedIndirectAddressing();
       this.Cycles += 6;
-    }
-    else if (opCode == 0x31) {
-      const { addr: tmpAddr, isCrossPage: crossPage } = this.indirectIndexedAddressing();
+    } else if (opCode == 0x31) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.indirectIndexedAddressing();
       addr = tmpAddr;
       this.Cycles += 5;
       if (crossPage) {
         this.Cycles += 1;
       }
-    }
-    else {
+    } else {
       throw new Error(`不支持的opCode,${opCode.toString(16)}`);
     }
 
     const data: number = this.m_CPUBus.readByte(addr);
 
     this.A = NumberUtils.toUInt8(this.A & data);
-    this.P.Z = (this.A == 0 ? 1 : 0);
+    this.P.Z = this.A == 0 ? 1 : 0;
     this.P.N = BitUtils.get(this.A, 7);
   }
 
   asl(opCode: number): void {
     let addr: number;
-    if (opCode == 0x0A) {
+    if (opCode == 0x0a) {
       const newCarryFlag: number = BitUtils.get(this.A, 7);
       this.A = NumberUtils.toUInt8(this.A << 1);
 
-      this.P.Z = (this.A == 0 ? 1 : 0);
+      this.P.Z = this.A == 0 ? 1 : 0;
       this.P.N = BitUtils.get(this.A, 7);
       this.P.C = newCarryFlag;
       this.Cycles += 2;
       return;
-    }
-    else if (opCode == 0x06) {
+    } else if (opCode == 0x06) {
       addr = this.zeroPageAddressing();
       this.Cycles += 5;
-    }
-    else if (opCode == 0x16) {
+    } else if (opCode == 0x16) {
       addr = this.zeroPageAddressing();
       this.Cycles += 6;
-    }
-    else if (opCode == 0x0E) {
+    } else if (opCode == 0x0e) {
       addr = this.absoluteAddressing();
       this.Cycles += 6;
-    }
-    else if (opCode == 0x1E) {
+    } else if (opCode == 0x1e) {
       const { addr: tmpAddr } = this.absoluteXAddressing();
       addr = tmpAddr;
       this.Cycles += 7;
-    }
-    else {
+    } else {
       throw new Error(`不支持的opCode,${opCode.toString(16)}`);
     }
 
@@ -184,7 +202,7 @@ class CPU6502 implements ICPU6502 {
     data = NumberUtils.toUInt8(data << 1);
     this.m_CPUBus.writeByte(addr, data);
 
-    this.P.Z = (data == 0 ? 1 : 0);
+    this.P.Z = data == 0 ? 1 : 0;
     this.P.N = BitUtils.get(data, 7);
     this.P.C = newCarryFlag;
   }
@@ -202,14 +220,13 @@ class CPU6502 implements ICPU6502 {
         }
         this.PC = newAddr;
       }
-    }
-    else {
+    } else {
       throw new Error(`不支持的opCode,${opCode.toString(16)}`);
     }
   }
 
   bcs(opCode: number): void {
-    if (opCode == 0xB0) {
+    if (opCode == 0xb0) {
       let offset: number = this.relativeAddressing();
       offset = NumberUtils.toInt8(offset);
       this.Cycles += 2;
@@ -222,14 +239,13 @@ class CPU6502 implements ICPU6502 {
         }
         this.PC = newAddr;
       }
-    }
-    else {
+    } else {
       throw new Error(`不支持的opCode,${opCode.toString(16)}`);
     }
   }
 
   beq(opCode: number): void {
-    if (opCode == 0xF0) {
+    if (opCode == 0xf0) {
       let offset: number = this.relativeAddressing();
       offset = NumberUtils.toInt8(offset);
       this.Cycles += 2;
@@ -242,8 +258,7 @@ class CPU6502 implements ICPU6502 {
         }
         this.PC = newAddr;
       }
-    }
-    else {
+    } else {
       throw new Error(`不支持的opCode,${opCode.toString(16)}`);
     }
   }
@@ -253,7 +268,7 @@ class CPU6502 implements ICPU6502 {
     if (opCode == 0x24) {
       addr = this.zeroPageAddressing();
       this.Cycles += 3;
-    } else if (opCode == 0x2C) {
+    } else if (opCode == 0x2c) {
       addr = this.absoluteAddressing();
       this.Cycles += 4;
     } else {
@@ -262,7 +277,7 @@ class CPU6502 implements ICPU6502 {
 
     const data: number = this.m_CPUBus.readByte(addr);
     const result: number = data & this.A;
-    this.P.Z = (result == 0 ? 1 : 0);
+    this.P.Z = result == 0 ? 1 : 0;
     this.P.O = BitUtils.get(data, 6);
     this.P.N = BitUtils.get(data, 7);
   }
@@ -281,14 +296,13 @@ class CPU6502 implements ICPU6502 {
         }
         this.PC = newAddr;
       }
-    }
-    else {
+    } else {
       throw new Error(`不支持的opCode,${opCode.toString(16)}`);
     }
   }
 
   bne(opCode: number): void {
-    if (opCode == 0xD0) {
+    if (opCode == 0xd0) {
       let offset: number = this.relativeAddressing();
       offset = NumberUtils.toInt8(offset);
       this.Cycles += 2;
@@ -301,8 +315,7 @@ class CPU6502 implements ICPU6502 {
         }
         this.PC = newAddr;
       }
-    }
-    else {
+    } else {
       throw new Error(`不支持的opCode,${opCode.toString(16)}`);
     }
   }
@@ -321,10 +334,432 @@ class CPU6502 implements ICPU6502 {
         }
         this.PC = newAddr;
       }
-    }
-    else {
+    } else {
       throw new Error(`不支持的opCode,${opCode.toString(16)}`);
     }
+  }
+
+  brk(opCode: number): void {
+    if (opCode == 0x00) {
+      const high: number = NumberUtils.toUInt8((this.PC >> 7) & 0xff);
+      const low: number = NumberUtils.toUInt8(this.PC & 0xff);
+      let pValue: number = this.P.value;
+      pValue = BitUtils.set(pValue, 4);
+      pValue = BitUtils.set(pValue, 5);
+      this.push(high);
+      this.push(low);
+      this.push(pValue);
+
+      this.P.B = 1;
+      this.P.I = 1;
+      this.Cycles += 7;
+
+      this.PC = this.readUInt16(0xfffe);
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  bvc(opCode: number): void {
+    if (opCode == 0x50) {
+      let offset: number = this.relativeAddressing();
+      offset = NumberUtils.toInt8(offset);
+      this.Cycles += 2;
+      if (this.P.O == 0) {
+        this.Cycles += 1;
+
+        const newAddr: number = NumberUtils.toUInt16(this.PC + offset);
+        if (this.isCrossPage(newAddr, this.PC)) {
+          this.Cycles += 1;
+        }
+        this.PC = newAddr;
+      }
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  bvs(opCode: number): void {
+    if (opCode == 0x70) {
+      let offset: number = this.relativeAddressing();
+      offset = NumberUtils.toInt8(offset);
+      this.Cycles += 2;
+      if (this.P.O == 1) {
+        this.Cycles += 1;
+
+        const newAddr: number = NumberUtils.toUInt16(this.PC + offset);
+        if (this.isCrossPage(newAddr, this.PC)) {
+          this.Cycles += 1;
+        }
+        this.PC = newAddr;
+      }
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  clc(opCode: number): void {
+    if (opCode == 0x18) {
+      this.P.C = 0;
+      this.Cycles += 2;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  cld(opCode: number): void {
+    if (opCode == 0xd8) {
+      this.P.D = 0;
+      this.Cycles += 2;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  cli(opCode: number): void {
+    if (opCode == 0x58) {
+      this.P.I = 0;
+      this.Cycles += 2;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  clv(opCode: number): void {
+    if (opCode == 0xb8) {
+      this.P.O = 0;
+      this.Cycles += 2;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  cmp(opCode: number): void {
+    let addr: number;
+    if (opCode == 0xc9) {
+      addr = this.immediateAddressing();
+      this.Cycles += 2;
+    } else if (opCode == 0xc5) {
+      addr = this.zeroPageAddressing();
+      this.Cycles += 3;
+    } else if (opCode == 0xd5) {
+      addr = this.zeroPageXAddressing();
+      this.Cycles += 4;
+    } else if (opCode == 0xcd) {
+      addr = this.absoluteAddressing();
+      this.Cycles += 4;
+    } else if (opCode == 0xdd) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.absoluteXAddressing();
+      addr = tmpAddr;
+      this.Cycles += 4;
+      if (crossPage) {
+        this.Cycles += 1;
+      }
+    } else if (opCode == 0xd9) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.absoluteYAddressing();
+      addr = tmpAddr;
+      this.Cycles += 4;
+      if (crossPage) {
+        this.Cycles += 1;
+      }
+    } else if (opCode == 0xc1) {
+      addr = this.indexedIndirectAddressing();
+      this.Cycles += 6;
+    } else if (opCode == 0xd1) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.indirectIndexedAddressing();
+      addr = tmpAddr;
+      this.Cycles += 5;
+      if (crossPage) {
+        this.Cycles += 1;
+      }
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+
+    const data: number = this.m_CPUBus.readByte(addr);
+    const diff: number = NumberUtils.toUInt8(this.A - data);
+    this.P.C = this.A >= data ? 1 : 0;
+    this.P.Z = this.A == data ? 1 : 0;
+    this.P.N = BitUtils.get(diff, 7);
+  }
+
+  cpx(opCode: number): void {
+    let addr: number;
+    if (opCode == 0xe0) {
+      addr = this.immediateAddressing();
+      this.Cycles += 2;
+    } else if (opCode == 0xe4) {
+      addr = this.zeroPageAddressing();
+      this.Cycles += 3;
+    } else if (opCode == 0xec) {
+      addr = this.absoluteAddressing();
+      this.Cycles += 4;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+
+    const data: number = this.m_CPUBus.readByte(addr);
+    const diff: number = NumberUtils.toUInt8(this.X - data);
+    this.P.C = this.X >= data ? 1 : 0;
+    this.P.Z = this.X == data ? 1 : 0;
+    this.P.N = BitUtils.get(diff, 7);
+  }
+
+  cpy(opCode: number): void {
+    let addr: number;
+    if (opCode == 0xc0) {
+      addr = this.immediateAddressing();
+      this.Cycles += 2;
+    } else if (opCode == 0xc4) {
+      addr = this.zeroPageAddressing();
+      this.Cycles += 3;
+    } else if (opCode == 0xcc) {
+      addr = this.absoluteAddressing();
+      this.Cycles += 4;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+
+    const data: number = this.m_CPUBus.readByte(addr);
+    const diff: number = NumberUtils.toUInt8(this.Y - data);
+    this.P.C = this.Y >= data ? 1 : 0;
+    this.P.Z = this.Y == data ? 1 : 0;
+    this.P.N = BitUtils.get(diff, 7);
+  }
+
+  dec(opCode: number): void {
+    let addr: number;
+    if (addr == 0xc6) {
+      addr = this.zeroPageAddressing();
+      this.Cycles += 5;
+    } else if (addr == 0xd6) {
+      addr = this.zeroPageXAddressing();
+      this.Cycles += 6;
+    } else if (addr == 0xce) {
+      addr = this.absoluteAddressing();
+      this.Cycles += 6;
+    } else if (addr == 0xde) {
+      const { addr: tmpAddr } = this.absoluteXAddressing();
+      addr = tmpAddr;
+      this.Cycles += 7;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+
+    let data: number = this.m_CPUBus.readByte(addr);
+    data = NumberUtils.toUInt8(data - 1);
+    this.m_CPUBus.writeByte(addr, data);
+
+    this.P.Z = data == 0 ? 1 : 0;
+    this.P.N = BitUtils.get(data, 7);
+  }
+
+  dex(opCode: number): void {
+    if (opCode == 0xca) {
+      this.X = NumberUtils.toUInt8(this.X - 1);
+      this.P.Z = this.X == 0 ? 1 : 0;
+      this.P.N = BitUtils.get(this.X, 7);
+      this.Cycles += 2;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  dey(opCode: number): void {
+    if (opCode == 0xca) {
+      this.Y = NumberUtils.toUInt8(this.Y - 1);
+      this.P.Z = this.Y == 0 ? 1 : 0;
+      this.P.N = BitUtils.get(this.Y, 7);
+      this.Cycles += 2;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  eor(opCode: number): void {
+    let addr: number;
+    if (opCode == 0x49) {
+      addr = this.immediateAddressing();
+      this.Cycles += 2;
+    } else if (opCode == 0x45) {
+      addr = this.zeroPageAddressing();
+      this.Cycles += 3;
+    } else if (opCode == 0x55) {
+      addr = this.zeroPageXAddressing();
+      this.Cycles += 4;
+    } else if (opCode == 0x4d) {
+      addr = this.absoluteAddressing();
+      this.Cycles += 4;
+    } else if (opCode == 0x5d) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.absoluteXAddressing();
+      this.Cycles += 4;
+      addr = tmpAddr;
+      if (crossPage) {
+        this.Cycles += 1;
+      }
+    } else if (opCode == 0x59) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.absoluteYAddressing();
+      this.Cycles += 4;
+      addr = tmpAddr;
+      if (crossPage) {
+        this.Cycles += 1;
+      }
+    } else if (opCode == 0x41) {
+      addr = this.indexedIndirectAddressing();
+      this.Cycles += 6;
+    } else if (opCode == 0x51) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.indirectIndexedAddressing();
+      this.Cycles += 5;
+      addr = tmpAddr;
+      if (crossPage) {
+        this.Cycles += 1;
+      }
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+
+    let data: number = this.m_CPUBus.readByte(addr);
+    this.A ^= data;
+    this.P.Z = this.A == 0 ? 1 : 0;
+    this.P.N = BitUtils.get(this.A, 7);
+  }
+
+  inc(opCode: number): void {
+    let addr: number;
+    if (opCode == 0xe6) {
+      addr = this.zeroPageAddressing();
+      this.Cycles += 5;
+    } else if (opCode == 0xf6) {
+      addr = this.zeroPageXAddressing();
+      this.Cycles += 6;
+    } else if (opCode == 0xee) {
+      addr = this.absoluteAddressing();
+      this.Cycles += 6;
+    } else if (opCode == 0xfe) {
+      const { addr: tmpAddr } = this.absoluteXAddressing();
+      addr = tmpAddr;
+      this.Cycles += 7;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+
+    let data: number = this.m_CPUBus.readByte(addr);
+    data = NumberUtils.toUInt8(data + 1);
+    this.m_CPUBus.writeByte(addr, data);
+    this.P.Z = data == 0 ? 1 : 0;
+    this.P.N = BitUtils.get(data, 7);
+  }
+
+  inx(opCode: number): void {
+    if (opCode == 0xe8) {
+      this.X = NumberUtils.toUInt8(this.X + 1);
+      this.P.Z = this.X == 0 ? 1 : 0;
+      this.P.N = BitUtils.get(this.X, 7);
+
+      this.Cycles += 2;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  iny(opCode: number): void {
+    if (opCode == 0xc8) {
+      this.Y = NumberUtils.toUInt8(this.Y + 1);
+      this.P.Z = this.Y == 0 ? 1 : 0;
+      this.P.N = BitUtils.get(this.Y, 7);
+
+      this.Cycles += 2;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  jmp(opCode: number): void {
+    let addr: number;
+    if (opCode == 0x4c) {
+      addr = this.absoluteAddressing();
+      this.Cycles += 3;
+    } else if (opCode == 0x6c) {
+      addr = this.indirectAddressing();
+      this.Cycles += 5;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+
+    this.PC = addr;
+  }
+
+  jsr(opCode: number): void {
+    if (opCode == 0x20) {
+      const addr: number = this.absoluteAddressing();
+      const returnAddr: number = NumberUtils.toUInt16(this.PC - 1);
+      const high: number = NumberUtils.toUInt8((returnAddr >> 8) & 0xff);
+      const low: number = NumberUtils.toUInt8(returnAddr & 0xff);
+      this.push(high);
+      this.push(low);
+
+      this.PC = addr;
+      this.Cycles += 6;
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+  }
+
+  lda(opCode: number): void {
+    let addr: number;
+    if (opCode == 0xa9) {
+      addr = this.immediateAddressing();
+      this.Cycles += 2;
+    } else if (opCode == 0xa5) {
+      addr = this.zeroPageAddressing();
+      this.Cycles += 3;
+    } else if (opCode == 0xb5) {
+      addr = this.zeroPageXAddressing();
+      this.Cycles += 4;
+    } else if (opCode == 0xad) {
+      addr = this.absoluteAddressing();
+      this.Cycles += 4;
+    } else if (opCode == 0xbd) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.absoluteXAddressing();
+      addr = tmpAddr;
+      this.Cycles += 4;
+      if (crossPage) {
+        this.Cycles += 1;
+      }
+    } else if (opCode == 0xb9) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.absoluteYAddressing();
+      addr = tmpAddr;
+      this.Cycles += 4;
+      if (crossPage) {
+        this.Cycles += 1;
+      }
+    } else if (opCode == 0xa1) {
+      addr = this.indexedIndirectAddressing();
+      this.Cycles += 6;
+    } else if (opCode == 0xb1) {
+      const { addr: tmpAddr, isCrossPage: crossPage } =
+        this.indirectIndexedAddressing();
+      addr = tmpAddr;
+      this.Cycles += 5;
+      if (crossPage) {
+        this.Cycles += 1;
+      }
+    } else {
+      throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+    }
+
+    const data: number = this.m_CPUBus.readByte(addr);
+    this.A = data;
+    this.P.Z = this.A == 0 ? 1 : 0;
+    this.P.N = BitUtils.get(this.A, 7);
   }
 
   /**
