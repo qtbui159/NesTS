@@ -139,16 +139,61 @@ class CPU6502 implements ICPU6502 {
     }
 
     ticktock(): void {
-        throw new Error("Method not implemented.");
+        const opCode: number = this.m_CPUBus.readByte(this.PC++);
+        if (!this.m_OpCodeMapFunction.has(opCode)) {
+            throw new Error(`不支持的opCode,${opCode.toString(16)}`);
+        }
+
+        const opFunction: OpFunction = this.m_OpCodeMapFunction.get(opCode);
+        opFunction(opCode);
     }
+
     reset(): void {
-        throw new Error("Method not implemented.");
+        const resetAddr: number = 0xfffc;
+        this.PC = this.readUInt16(resetAddr);
+        this.SP = 0xfd;
+        this.A = 0;
+        this.X = 0;
+        this.Y = 0;
+        this.P.updateValue(0x34);
     }
+
     nmi(): void {
-        throw new Error("Method not implemented.");
+        const nmiAddr: number = 0xfffa;
+        const high: number = NumberUtils.toUInt8((this.PC >> 8) & 0xff);
+        const low: number = NumberUtils.toUInt8(this.PC & 0xff);
+        let pValue: number = this.P.value;
+        pValue = BitUtils.set(pValue, 5);
+
+        this.push(high);
+        this.push(low);
+        this.push(pValue);
+
+        this.P.I = 1;
+        this.PC = this.readUInt16(nmiAddr);
+
+        this.Cycles += 7;
     }
+
     irq(): void {
-        throw new Error("Method not implemented.");
+        if (this.P.I == 1) {
+            return;
+        }
+
+        const irqAddr: number = 0xfffe;
+        const high: number = NumberUtils.toUInt8((this.PC >> 8) & 0xff);
+        const low: number = NumberUtils.toUInt8(this.PC & 0xff);
+        let pValue: number = this.P.value;
+        pValue = BitUtils.set(pValue, 5);
+
+        this.push(high);
+        this.push(low);
+        this.push(pValue);
+
+        this.P.I = 1;
+        this.PC = this.readUInt16(irqAddr);
+
+        this.Cycles += 7;
     }
 
     adc(opCode: number): void {
