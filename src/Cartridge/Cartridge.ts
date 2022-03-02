@@ -1,0 +1,46 @@
+import MirroringMode from "../Common/MirroringMode";
+import ICartridge from "./ICartridge";
+import IMapper from "./IMapper";
+import Mapper000 from "./Mapper/Mapper000";
+
+class Cartridge implements ICartridge {
+    private m_MirroringMode: MirroringMode;
+    get mirroringMode(): MirroringMode {
+        return this.m_MirroringMode;
+    }
+
+    private m_CHRRom: Uint8Array;
+    get chrRom(): Uint8Array {
+        return this.m_CHRRom;
+    }
+
+    private m_PRGRom: Uint8Array;
+    get prgRom(): Uint8Array {
+        return this.m_PRGRom;
+    }
+
+    private m_Mapper: IMapper;
+    get mapper(): IMapper {
+        return this.m_Mapper;
+    }
+
+    private constructor(mirroringMode: MirroringMode, prgRom: Uint8Array, chrRom: Uint8Array) {
+        this.m_MirroringMode = mirroringMode;
+        this.m_CHRRom = chrRom;
+        this.m_PRGRom = prgRom;
+    }
+
+    public static create(mirroringMode: MirroringMode, prgRom: Uint8Array, chrRom: Uint8Array, mapperVersion: number) {
+        const prgRam: Uint8Array = new Uint8Array(0x2000);
+        let mapper: IMapper;
+        if (mapperVersion == 0) {
+            mapper = new Mapper000(prgRam, prgRom, chrRom);
+        } else {
+            throw new Error(`Not support mapper versoin ${mapperVersion}`);
+        }
+
+        return new Cartridge(mirroringMode, prgRom, chrRom);
+    }
+}
+
+export default Cartridge;
