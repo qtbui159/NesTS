@@ -1,7 +1,7 @@
 import BitUtils from "../Utils/BitUtils";
 
 abstract class RegisterBase {
-    protected m_Value: number;
+    protected m_Value: number = 0;
     public get value(): number {
         return this.m_Value;
     }

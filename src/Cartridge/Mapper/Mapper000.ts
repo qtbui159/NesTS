@@ -31,6 +31,7 @@ export default class Mapper000 implements IMapper {
             const realAddr = this.getPRGRomRealAddr(addr);
             return this.m_PRGRom[realAddr];
         }
+        throw new Error(`Not support address ${addr.toString(16)}`);
     }
 
     private getPRGRomRealAddr(addr: number): number {

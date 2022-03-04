@@ -19,6 +19,7 @@ class Nes implements INes {
         this.m_RAM = new RAM();
         this.m_CPUBus = new CPUBus();
         this.m_CPU6502 = new CPU6502(this.m_CPUBus);
+        this.m_Cartridge = {} as any;
 
         this.m_CPUBus.connectRAM(this.m_RAM);
     }

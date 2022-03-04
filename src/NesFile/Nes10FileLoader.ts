@@ -34,7 +34,7 @@ export default class Nes10FileLoader implements IFileLoader {
         const flag1: number = data[6];
         const flag2: number = data[7];
         const bMirroringMode: number = BitUtils.get(flag1, 0);
-        let mirroringMode: MirroringMode;
+        let mirroringMode: MirroringMode = MirroringMode.Horizontal;
 
         if (bMirroringMode == 0) {
             mirroringMode = MirroringMode.Horizontal;
@@ -48,7 +48,7 @@ export default class Nes10FileLoader implements IFileLoader {
         const mapperHigh: number = flag2 & 0xf0;
         const mapperVersion = mapperHigh | mapperLow;
         const prgStart: number = 16 + trainerSize;
-        const prgEnd: number = 16 + trainerSize + amountOfPRGBlock * 16 * 1024 + 16 + trainerSize;
+        const prgEnd: number = 16 + trainerSize + amountOfPRGBlock * 16 * 1024;
         const chrStart: number = prgEnd;
         const chrEnd: number = chrStart + amountOfCHRBlock * 8 * 1024;
 

@@ -3,8 +3,8 @@ import IRAM from "../Memory/IRAM";
 import ICPUBus from "./ICPUBus";
 
 class CPUBus implements ICPUBus {
-    private m_RAM: IRAM;
-    private m_Cartridge: ICartridge;
+    private m_RAM: IRAM = {} as any;
+    private m_Cartridge: ICartridge = {} as any;
 
     connectRAM(ram: IRAM): void {
         this.m_RAM = ram;
@@ -31,6 +31,7 @@ class CPUBus implements ICPUBus {
             return this.m_RAM.readByte(addr);
         } else if (addr >= 0x2000 && addr < 0x4020) {
             //ppu,apu,joystick registers
+            return 0;
         } else if (addr >= 0x6000) {
             return this.m_Cartridge.mapper.readByte(addr);
         } else {

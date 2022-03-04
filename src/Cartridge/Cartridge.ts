@@ -19,15 +19,16 @@ class Cartridge implements ICartridge {
         return this.m_PRGRom;
     }
 
-    private m_Mapper: IMapper;
+    private m_Mapper: IMapper = {} as any;
     get mapper(): IMapper {
         return this.m_Mapper;
     }
 
-    private constructor(mirroringMode: MirroringMode, prgRom: Uint8Array, chrRom: Uint8Array) {
+    private constructor(mirroringMode: MirroringMode, prgRom: Uint8Array, chrRom: Uint8Array, mapper: IMapper) {
         this.m_MirroringMode = mirroringMode;
         this.m_CHRRom = chrRom;
         this.m_PRGRom = prgRom;
+        this.m_Mapper = mapper;
     }
 
     public static create(mirroringMode: MirroringMode, prgRom: Uint8Array, chrRom: Uint8Array, mapperVersion: number) {
@@ -39,7 +40,7 @@ class Cartridge implements ICartridge {
             throw new Error(`Not support mapper versoin ${mapperVersion}`);
         }
 
-        return new Cartridge(mirroringMode, prgRom, chrRom);
+        return new Cartridge(mirroringMode, prgRom, chrRom, mapper);
     }
 }
 

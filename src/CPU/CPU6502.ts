@@ -22,7 +22,7 @@ class CPU6502 implements ICPU6502 {
     public set PC(newPC: number) {
         this.m_PC = NumberUtils.toUInt16(newPC);
     }
-    private m_PC: number;
+    private m_PC: number = 0;
 
     public get SP(): number {
         return this.m_SP;
@@ -30,11 +30,11 @@ class CPU6502 implements ICPU6502 {
     public set SP(newSP: number) {
         this.m_SP = NumberUtils.toUInt8(newSP);
     }
-    private m_SP: number;
+    private m_SP: number = 0;
 
     public P: StatusRegister;
 
-    public Cycles: number;
+    public Cycles: number = 0;
 
     constructor(cpuBus: ICPUBus) {
         this.m_CPUBus = cpuBus;
@@ -46,14 +46,12 @@ class CPU6502 implements ICPU6502 {
         this.SP = 0;
         this.P = new StatusRegister();
 
+        this.m_OpCodeMapFunction = new Map<number, OpFunction>();
+
         this.init();
     }
 
     init(): void {
-        if (this.m_OpCodeMapFunction == null) {
-            this.m_OpCodeMapFunction = new Map<number, OpFunction>();
-        }
-
         this.batchAdd(this.adc, 0x69, 0x65, 0x75, 0x6d, 0x7d, 0x79, 0x61, 0x71);
         this.batchAdd(this.and, 0x29, 0x25, 0x35, 0x2d, 0x3d, 0x39, 0x21, 0x31);
         this.batchAdd(this.asl, 0x0a, 0x06, 0x16, 0x0e, 0x1e);
@@ -134,7 +132,7 @@ class CPU6502 implements ICPU6502 {
             if (this.m_OpCodeMapFunction.has(opCode)) {
                 throw new Error("key already exists");
             }
-            this.m_OpCodeMapFunction.set(opCode, func);
+            this.m_OpCodeMapFunction.set(opCode, func.bind(this));
         }
     }
 
@@ -144,8 +142,8 @@ class CPU6502 implements ICPU6502 {
             throw new Error(`不支持的opCode,${opCode.toString(16)}`);
         }
 
-        const opFunction: OpFunction = this.m_OpCodeMapFunction.get(opCode);
-        opFunction(opCode);
+        const opFunction: OpFunction | undefined = this.m_OpCodeMapFunction.get(opCode);
+        opFunction!(opCode);
     }
 
     reset(): void {
@@ -658,16 +656,16 @@ class CPU6502 implements ICPU6502 {
 
     dec(opCode: number): void {
         let addr: number;
-        if (addr == 0xc6) {
+        if (opCode == 0xc6) {
             addr = this.zeroPageAddressing();
             this.Cycles += 5;
-        } else if (addr == 0xd6) {
+        } else if (opCode == 0xd6) {
             addr = this.zeroPageXAddressing();
             this.Cycles += 6;
-        } else if (addr == 0xce) {
+        } else if (opCode == 0xce) {
             addr = this.absoluteAddressing();
             this.Cycles += 6;
-        } else if (addr == 0xde) {
+        } else if (opCode == 0xde) {
             const { addr: tmpAddr } = this.absoluteXAddressing();
             addr = tmpAddr;
             this.Cycles += 7;
@@ -1483,16 +1481,16 @@ class CPU6502 implements ICPU6502 {
 
     unofficial_sax(opCode: number): void {
         let addr: number;
-        if (addr == 0x83) {
+        if (opCode == 0x83) {
             addr = this.indexedIndirectAddressing();
             this.Cycles += 6;
-        } else if (addr == 0x87) {
+        } else if (opCode == 0x87) {
             addr = this.zeroPageAddressing();
             this.Cycles += 3;
-        } else if (addr == 0x8f) {
+        } else if (opCode == 0x8f) {
             addr = this.absoluteAddressing();
             this.Cycles += 4;
-        } else if (addr == 0x97) {
+        } else if (opCode == 0x97) {
             addr = this.zeroPageYAddressing();
             this.Cycles += 4;
         } else {
