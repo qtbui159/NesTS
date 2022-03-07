@@ -16,7 +16,7 @@ class NumberUtils {
 
         const isNegative: boolean = BitUtils.get(value, 7) == 1;
         const n: number = value & 0x7f;
-        return isNegative ? -n : n;
+        return isNegative ? n - 128 : n;
     }
 
     toInt16(value: number): number {
@@ -26,7 +26,7 @@ class NumberUtils {
 
         const isNegative: boolean = BitUtils.get(value, 15) == 1;
         const n: number = value & 0x7fff;
-        return isNegative ? -n : n;
+        return isNegative ? n - 32768 : n;
     }
 }
 

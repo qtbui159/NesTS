@@ -153,7 +153,7 @@ class CPU6502 implements ICPU6502 {
         this.A = 0;
         this.X = 0;
         this.Y = 0;
-        this.P.updateValue(0x34);
+        this.P.updateValue(0x24);
     }
 
     nmi(): void {
@@ -311,7 +311,7 @@ class CPU6502 implements ICPU6502 {
             addr = this.zeroPageAddressing();
             this.Cycles += 5;
         } else if (opCode == 0x16) {
-            addr = this.zeroPageAddressing();
+            addr = this.zeroPageXAddressing();
             this.Cycles += 6;
         } else if (opCode == 0x0e) {
             addr = this.absoluteAddressing();
@@ -693,7 +693,7 @@ class CPU6502 implements ICPU6502 {
     }
 
     dey(opCode: number): void {
-        if (opCode == 0xca) {
+        if (opCode == 0x88) {
             this.Y = NumberUtils.toUInt8(this.Y - 1);
             this.P.Z = this.Y == 0 ? 1 : 0;
             this.P.N = BitUtils.get(this.Y, 7);
@@ -1126,10 +1126,10 @@ class CPU6502 implements ICPU6502 {
         let addr: number;
         if (opCode == 0x6a) {
             const oldCarryFlag: number = this.P.C;
-            const newCarryFlag: number = BitUtils.get(this.A, 7);
+            const newCarryFlag: number = BitUtils.get(this.A, 0);
             this.A = NumberUtils.toUInt8(this.A >> 1);
             if (oldCarryFlag == 1) {
-                this.A = BitUtils.set(this.A, 0);
+                this.A = BitUtils.set(this.A, 7);
             }
             this.P.C = newCarryFlag;
             this.P.Z = this.A == 0 ? 1 : 0;
@@ -1155,10 +1155,10 @@ class CPU6502 implements ICPU6502 {
 
         let data: number = this.m_CPUBus.readByte(addr);
         const oldCarryFlag: number = this.P.C;
-        const newCarryFlag: number = BitUtils.get(data, 7);
+        const newCarryFlag: number = BitUtils.get(data, 0);
         data = NumberUtils.toUInt8(data >> 1);
         if (oldCarryFlag == 1) {
-            data = BitUtils.set(data, 0);
+            data = BitUtils.set(data, 7);
         }
         this.P.C = newCarryFlag;
         this.P.Z = data == 0 ? 1 : 0;
@@ -1475,7 +1475,7 @@ class CPU6502 implements ICPU6502 {
             throw new Error(`不支持的opCode,${opCode.toString(16)}`);
         }
 
-        this.txa(0xaa);
+        this.tax(0xaa);
         this.Cycles = tmpCycle;
     }
 
@@ -1790,10 +1790,10 @@ class CPU6502 implements ICPU6502 {
         //ror
         let data: number = this.m_CPUBus.readByte(addr);
         const oldCarryFlag: number = this.P.C;
-        const newCarryFlag: number = BitUtils.get(data, 7);
+        const newCarryFlag: number = BitUtils.get(data, 0);
         data = NumberUtils.toUInt8(data >> 1);
         if (oldCarryFlag == 1) {
-            data = BitUtils.set(data, 0);
+            data = BitUtils.set(data, 7);
         }
         this.P.C = newCarryFlag;
         this.P.Z = data == 0 ? 1 : 0;
@@ -1867,7 +1867,7 @@ class CPU6502 implements ICPU6502 {
         this.PC += 2;
         const newAddr: number = NumberUtils.toUInt16(addr + this.X);
         return {
-            addr: addr,
+            addr: newAddr,
             isCrossPage: this.isCrossPage(addr, newAddr),
         };
     }
@@ -1881,7 +1881,7 @@ class CPU6502 implements ICPU6502 {
         this.PC += 2;
         const newAddr: number = NumberUtils.toUInt16(addr + this.Y);
         return {
-            addr: addr,
+            addr: newAddr,
             isCrossPage: this.isCrossPage(addr, newAddr),
         };
     }
@@ -2013,9 +2013,9 @@ class CPU6502 implements ICPU6502 {
             return false;
         }
 
-        let sum: number = 0;
-        for (const i of dataArray) {
-            sum -= NumberUtils.toInt8(i);
+        let sum: number = NumberUtils.toInt8(dataArray[0]);
+        for (let i = 1; i < dataArray.length; ++i) {
+            sum -= NumberUtils.toInt8(dataArray[i]);
             if (sum > 127 || sum < -128) {
                 return true;
             }
