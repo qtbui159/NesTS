@@ -1,9 +1,9 @@
 import IReadWrite from "../Common/IReadWrite";
-import IRAM from "../Memory/IRAM";
+import IRam from "../Memory/IRam";
 import ICartridge from "../Cartridge/ICartridge";
 
 interface ICPUBus extends IReadWrite {
-    connectRAM(ram: IRAM): void;
+    connectRAM(ram: IRam): void;
     connectCartridge(cartridge: ICartridge): void;
 }
 

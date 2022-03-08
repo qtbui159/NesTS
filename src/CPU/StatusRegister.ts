@@ -5,81 +5,81 @@ class StatusRegister extends RegisterBase {
     /**
      * 进位标志
      */
-    get C(): number {
+    public get C(): number {
         return BitUtils.get(this.m_Value, 0);
     }
 
-    set C(value: number) {
+    public set C(value: number) {
         this.updateBit(0, value);
     }
 
     /**
      * 零标志
      */
-    get Z(): number {
+    public get Z(): number {
         return BitUtils.get(this.m_Value, 1);
     }
 
-    set Z(value: number) {
+    public set Z(value: number) {
         this.updateBit(1, value);
     }
 
     /**
      * 中断停用标志
      */
-    get I(): number {
+    public get I(): number {
         return BitUtils.get(this.m_Value, 2);
     }
 
-    set I(value: number) {
+    public set I(value: number) {
         this.updateBit(2, value);
     }
 
     /**
      * decimal模式
      */
-    get D(): number {
+    public get D(): number {
         return BitUtils.get(this.m_Value, 3);
     }
 
-    set D(value: number) {
+    public set D(value: number) {
         this.updateBit(3, value);
     }
 
     /**
      * 中断标志
      */
-    get B(): number {
+    public get B(): number {
         return BitUtils.get(this.m_Value, 4);
     }
 
-    set B(value: number) {
+    public set B(value: number) {
         this.updateBit(4, value);
     }
 
     /**
      * 溢出标志
      */
-    get O(): number {
+    public get O(): number {
         return BitUtils.get(this.m_Value, 6);
     }
 
-    set O(value: number) {
+    public set O(value: number) {
         this.updateBit(6, value);
     }
 
     /**
      * 负标志
      */
-    get N(): number {
+    public get N(): number {
         return BitUtils.get(this.m_Value, 7);
     }
 
-    set N(value: number) {
+    public set N(value: number) {
         this.updateBit(7, value);
     }
 
-    constructor() {
+    public constructor() {
         super();
         this.m_Value = 0x24;
     }

@@ -4,7 +4,7 @@ class BitUtils {
      * @param data 数据
      * @param pos 比特位
      */
-    set(data: number, pos: number): number {
+    public set(data: number, pos: number): number {
         return data | (1 << pos);
     }
     /**
@@ -12,7 +12,7 @@ class BitUtils {
      * @param data 原始数据
      * @param pos 比特位
      */
-    clear(data: number, pos: number): number {
+    public clear(data: number, pos: number): number {
         return data & ~(1 << pos);
     }
 
@@ -22,7 +22,7 @@ class BitUtils {
      * @param pos 比特位
      * @returns 1或者0
      */
-    get(data: number, pos: number): number {
+    public get(data: number, pos: number): number {
         return data & (1 << pos) ? 1 : 0;
     }
 }

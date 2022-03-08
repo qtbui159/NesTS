@@ -5,22 +5,22 @@ import Mapper000 from "./Mapper/Mapper000";
 
 class Cartridge implements ICartridge {
     private m_MirroringMode: MirroringMode;
-    get mirroringMode(): MirroringMode {
+    public get mirroringMode(): MirroringMode {
         return this.m_MirroringMode;
     }
 
     private m_CHRRom: Uint8Array;
-    get chrRom(): Uint8Array {
+    public get chrRom(): Uint8Array {
         return this.m_CHRRom;
     }
 
     private m_PRGRom: Uint8Array;
-    get prgRom(): Uint8Array {
+    public get prgRom(): Uint8Array {
         return this.m_PRGRom;
     }
 
     private m_Mapper: IMapper = {} as any;
-    get mapper(): IMapper {
+    public get mapper(): IMapper {
         return this.m_Mapper;
     }
 

@@ -36,7 +36,7 @@ class CPU6502 implements ICPU6502 {
 
     public Cycles: number = 0;
 
-    constructor(cpuBus: ICPUBus) {
+    public constructor(cpuBus: ICPUBus) {
         this.m_CPUBus = cpuBus;
 
         this.X = 0;
@@ -51,7 +51,7 @@ class CPU6502 implements ICPU6502 {
         this.init();
     }
 
-    init(): void {
+    private init(): void {
         this.batchAdd(this.adc, 0x69, 0x65, 0x75, 0x6d, 0x7d, 0x79, 0x61, 0x71);
         this.batchAdd(this.and, 0x29, 0x25, 0x35, 0x2d, 0x3d, 0x39, 0x21, 0x31);
         this.batchAdd(this.asl, 0x0a, 0x06, 0x16, 0x0e, 0x1e);
@@ -120,7 +120,7 @@ class CPU6502 implements ICPU6502 {
         this.batchAdd(this.unofficial_rra, 0x63, 0x67, 0x6f, 0x73, 0x77, 0x7b, 0x7f);
     }
 
-    batchAdd(func: OpFunction, ...opCodes: number[]) {
+    private batchAdd(func: OpFunction, ...opCodes: number[]) {
         if (!func) {
             throw new Error("argument func invalid");
         }
@@ -136,7 +136,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    ticktock(): void {
+    public ticktock(): void {
         const opCode: number = this.m_CPUBus.readByte(this.PC++);
         if (!this.m_OpCodeMapFunction.has(opCode)) {
             throw new Error(`不支持的opCode,${opCode.toString(16)}`);
@@ -146,7 +146,7 @@ class CPU6502 implements ICPU6502 {
         opFunction!(opCode);
     }
 
-    reset(): void {
+    public reset(): void {
         const resetAddr: number = 0xfffc;
         this.PC = this.readUInt16(resetAddr);
         this.SP = 0xfd;
@@ -156,7 +156,7 @@ class CPU6502 implements ICPU6502 {
         this.P.updateValue(0x24);
     }
 
-    nmi(): void {
+    public nmi(): void {
         const nmiAddr: number = 0xfffa;
         const high: number = NumberUtils.toUInt8((this.PC >> 8) & 0xff);
         const low: number = NumberUtils.toUInt8(this.PC & 0xff);
@@ -173,7 +173,7 @@ class CPU6502 implements ICPU6502 {
         this.Cycles += 7;
     }
 
-    irq(): void {
+    public irq(): void {
         if (this.P.I == 1) {
             return;
         }
@@ -194,7 +194,7 @@ class CPU6502 implements ICPU6502 {
         this.Cycles += 7;
     }
 
-    adc(opCode: number): void {
+    private adc(opCode: number): void {
         let addr: number;
         if (opCode == 0x69) {
             addr = this.immediateAddressing();
@@ -247,7 +247,7 @@ class CPU6502 implements ICPU6502 {
         this.P.C = carryValue >> 8 != 0 ? 1 : 0;
     }
 
-    and(opCode: number): void {
+    private and(opCode: number): void {
         let addr: number;
         if (opCode == 0x29) {
             addr = this.immediateAddressing();
@@ -296,7 +296,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(this.A, 7);
     }
 
-    asl(opCode: number): void {
+    private asl(opCode: number): void {
         let addr: number;
         if (opCode == 0x0a) {
             const newCarryFlag: number = BitUtils.get(this.A, 7);
@@ -334,7 +334,7 @@ class CPU6502 implements ICPU6502 {
         this.P.C = newCarryFlag;
     }
 
-    bcc(opCode: number): void {
+    private bcc(opCode: number): void {
         if (opCode == 0x90) {
             let offset: number = this.relativeAddressing();
             offset = NumberUtils.toInt8(offset);
@@ -352,7 +352,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    bcs(opCode: number): void {
+    private bcs(opCode: number): void {
         if (opCode == 0xb0) {
             let offset: number = this.relativeAddressing();
             offset = NumberUtils.toInt8(offset);
@@ -371,7 +371,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    beq(opCode: number): void {
+    private beq(opCode: number): void {
         if (opCode == 0xf0) {
             let offset: number = this.relativeAddressing();
             offset = NumberUtils.toInt8(offset);
@@ -390,7 +390,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    bit(opCode: number): void {
+    private bit(opCode: number): void {
         let addr: number;
         if (opCode == 0x24) {
             addr = this.zeroPageAddressing();
@@ -409,7 +409,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(data, 7);
     }
 
-    bmi(opCode: number): void {
+    private bmi(opCode: number): void {
         if (opCode == 0x30) {
             let offset: number = this.relativeAddressing();
             offset = NumberUtils.toInt8(offset);
@@ -428,7 +428,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    bne(opCode: number): void {
+    private bne(opCode: number): void {
         if (opCode == 0xd0) {
             let offset: number = this.relativeAddressing();
             offset = NumberUtils.toInt8(offset);
@@ -447,7 +447,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    bpl(opCode: number): void {
+    private bpl(opCode: number): void {
         if (opCode == 0x10) {
             let offset: number = this.relativeAddressing();
             offset = NumberUtils.toInt8(offset);
@@ -466,7 +466,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    brk(opCode: number): void {
+    private brk(opCode: number): void {
         if (opCode == 0x00) {
             const high: number = NumberUtils.toUInt8((this.PC >> 7) & 0xff);
             const low: number = NumberUtils.toUInt8(this.PC & 0xff);
@@ -487,7 +487,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    bvc(opCode: number): void {
+    private bvc(opCode: number): void {
         if (opCode == 0x50) {
             let offset: number = this.relativeAddressing();
             offset = NumberUtils.toInt8(offset);
@@ -506,7 +506,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    bvs(opCode: number): void {
+    private bvs(opCode: number): void {
         if (opCode == 0x70) {
             let offset: number = this.relativeAddressing();
             offset = NumberUtils.toInt8(offset);
@@ -525,7 +525,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    clc(opCode: number): void {
+    private clc(opCode: number): void {
         if (opCode == 0x18) {
             this.P.C = 0;
             this.Cycles += 2;
@@ -534,7 +534,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    cld(opCode: number): void {
+    private cld(opCode: number): void {
         if (opCode == 0xd8) {
             this.P.D = 0;
             this.Cycles += 2;
@@ -543,7 +543,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    cli(opCode: number): void {
+    private cli(opCode: number): void {
         if (opCode == 0x58) {
             this.P.I = 0;
             this.Cycles += 2;
@@ -552,7 +552,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    clv(opCode: number): void {
+    private clv(opCode: number): void {
         if (opCode == 0xb8) {
             this.P.O = 0;
             this.Cycles += 2;
@@ -561,7 +561,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    cmp(opCode: number): void {
+    private cmp(opCode: number): void {
         let addr: number;
         if (opCode == 0xc9) {
             addr = this.immediateAddressing();
@@ -610,7 +610,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(diff, 7);
     }
 
-    cpx(opCode: number): void {
+    private cpx(opCode: number): void {
         let addr: number;
         if (opCode == 0xe0) {
             addr = this.immediateAddressing();
@@ -632,7 +632,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(diff, 7);
     }
 
-    cpy(opCode: number): void {
+    private cpy(opCode: number): void {
         let addr: number;
         if (opCode == 0xc0) {
             addr = this.immediateAddressing();
@@ -654,7 +654,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(diff, 7);
     }
 
-    dec(opCode: number): void {
+    private dec(opCode: number): void {
         let addr: number;
         if (opCode == 0xc6) {
             addr = this.zeroPageAddressing();
@@ -681,7 +681,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(data, 7);
     }
 
-    dex(opCode: number): void {
+    private dex(opCode: number): void {
         if (opCode == 0xca) {
             this.X = NumberUtils.toUInt8(this.X - 1);
             this.P.Z = this.X == 0 ? 1 : 0;
@@ -692,7 +692,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    dey(opCode: number): void {
+    private dey(opCode: number): void {
         if (opCode == 0x88) {
             this.Y = NumberUtils.toUInt8(this.Y - 1);
             this.P.Z = this.Y == 0 ? 1 : 0;
@@ -703,7 +703,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    eor(opCode: number): void {
+    private eor(opCode: number): void {
         let addr: number;
         if (opCode == 0x49) {
             addr = this.immediateAddressing();
@@ -751,7 +751,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(this.A, 7);
     }
 
-    inc(opCode: number): void {
+    private inc(opCode: number): void {
         let addr: number;
         if (opCode == 0xe6) {
             addr = this.zeroPageAddressing();
@@ -777,7 +777,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(data, 7);
     }
 
-    inx(opCode: number): void {
+    private inx(opCode: number): void {
         if (opCode == 0xe8) {
             this.X = NumberUtils.toUInt8(this.X + 1);
             this.P.Z = this.X == 0 ? 1 : 0;
@@ -789,7 +789,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    iny(opCode: number): void {
+    private iny(opCode: number): void {
         if (opCode == 0xc8) {
             this.Y = NumberUtils.toUInt8(this.Y + 1);
             this.P.Z = this.Y == 0 ? 1 : 0;
@@ -801,7 +801,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    jmp(opCode: number): void {
+    private jmp(opCode: number): void {
         let addr: number;
         if (opCode == 0x4c) {
             addr = this.absoluteAddressing();
@@ -816,7 +816,7 @@ class CPU6502 implements ICPU6502 {
         this.PC = addr;
     }
 
-    jsr(opCode: number): void {
+    private jsr(opCode: number): void {
         if (opCode == 0x20) {
             const addr: number = this.absoluteAddressing();
             const returnAddr: number = NumberUtils.toUInt16(this.PC - 1);
@@ -832,7 +832,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    lda(opCode: number): void {
+    private lda(opCode: number): void {
         let addr: number;
         if (opCode == 0xa9) {
             addr = this.immediateAddressing();
@@ -880,7 +880,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(this.A, 7);
     }
 
-    ldx(opCode: number): void {
+    private ldx(opCode: number): void {
         let addr: number;
         if (opCode == 0xa2) {
             addr = this.immediateAddressing();
@@ -911,7 +911,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(this.X, 7);
     }
 
-    ldy(opCode: number): void {
+    private ldy(opCode: number): void {
         let addr: number;
         if (opCode == 0xa0) {
             addr = this.immediateAddressing();
@@ -942,7 +942,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(this.Y, 7);
     }
 
-    lsr(opCode: number): void {
+    private lsr(opCode: number): void {
         let addr: number;
         if (opCode == 0x4a) {
             this.P.C = BitUtils.get(this.A, 0);
@@ -978,7 +978,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(data, 7);
     }
 
-    nop(opCode: number): void {
+    private nop(opCode: number): void {
         if (opCode == 0xea) {
             this.Cycles += 2;
         } else {
@@ -986,7 +986,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    ora(opCode: number): void {
+    private ora(opCode: number): void {
         let addr: number;
         if (opCode == 0x09) {
             addr = this.immediateAddressing();
@@ -1034,7 +1034,7 @@ class CPU6502 implements ICPU6502 {
         this.P.N = BitUtils.get(this.A, 7);
     }
 
-    pha(opCode: number): void {
+    private pha(opCode: number): void {
         if (opCode == 0x48) {
             this.push(this.A);
             this.Cycles += 3;
@@ -1043,7 +1043,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    php(opCode: number): void {
+    private php(opCode: number): void {
         if (opCode == 0x08) {
             let pValue: number = this.P.value;
             pValue = BitUtils.set(pValue, 4);
@@ -1055,7 +1055,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    pla(opCode: number): void {
+    private pla(opCode: number): void {
         if (opCode == 0x68) {
             this.A = this.pop();
             this.P.Z = this.A == 0 ? 1 : 0;
@@ -1066,7 +1066,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    plp(opCode: number): void {
+    private plp(opCode: number): void {
         if (opCode == 0x28) {
             let pValue: number = this.pop();
             pValue = BitUtils.set(pValue, 5);
@@ -1078,7 +1078,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    rol(opCode: number): void {
+    private rol(opCode: number): void {
         let addr: number;
         if (opCode == 0x2a) {
             const oldCarryFlag: number = this.P.C;
@@ -1122,7 +1122,7 @@ class CPU6502 implements ICPU6502 {
         this.m_CPUBus.writeByte(addr, data);
     }
 
-    ror(opCode: number): void {
+    private ror(opCode: number): void {
         let addr: number;
         if (opCode == 0x6a) {
             const oldCarryFlag: number = this.P.C;
@@ -1166,7 +1166,7 @@ class CPU6502 implements ICPU6502 {
         this.m_CPUBus.writeByte(addr, data);
     }
 
-    rti(opCode: number): void {
+    private rti(opCode: number): void {
         if (opCode == 0x40) {
             let pValue: number = this.pop();
             pValue = BitUtils.set(pValue, 5);
@@ -1182,7 +1182,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    rts(opCode: number): void {
+    private rts(opCode: number): void {
         if (opCode == 0x60) {
             const low: number = this.pop();
             const high: number = this.pop();
@@ -1195,7 +1195,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    sbc(opCode: number): void {
+    private sbc(opCode: number): void {
         let addr: number;
         if (opCode == 0xe9) {
             addr = this.immediateAddressing();
@@ -1248,7 +1248,7 @@ class CPU6502 implements ICPU6502 {
         this.P.C = carrayValue >= 0 ? 1 : 0;
     }
 
-    sec(opCode: number): void {
+    private sec(opCode: number): void {
         if (opCode == 0x38) {
             this.P.C = 1;
             this.Cycles += 2;
@@ -1257,7 +1257,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    sed(opCode: number): void {
+    private sed(opCode: number): void {
         if (opCode == 0xf8) {
             this.P.D = 1;
             this.Cycles += 2;
@@ -1266,7 +1266,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    sei(opCode: number): void {
+    private sei(opCode: number): void {
         if (opCode == 0x78) {
             this.P.I = 1;
             this.Cycles += 2;
@@ -1275,7 +1275,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    sta(opCode: number): void {
+    private sta(opCode: number): void {
         let addr: number;
         if (opCode == 0x85) {
             addr = this.zeroPageAddressing();
@@ -1308,7 +1308,7 @@ class CPU6502 implements ICPU6502 {
         this.m_CPUBus.writeByte(addr, this.A);
     }
 
-    stx(opCode: number): void {
+    private stx(opCode: number): void {
         let addr: number;
         if (opCode == 0x86) {
             addr = this.zeroPageAddressing();
@@ -1326,7 +1326,7 @@ class CPU6502 implements ICPU6502 {
         this.m_CPUBus.writeByte(addr, this.X);
     }
 
-    sty(opCode: number): void {
+    private sty(opCode: number): void {
         let addr: number;
         if (opCode == 0x84) {
             addr = this.zeroPageAddressing();
@@ -1344,7 +1344,7 @@ class CPU6502 implements ICPU6502 {
         this.m_CPUBus.writeByte(addr, this.Y);
     }
 
-    tax(opCode: number): void {
+    private tax(opCode: number): void {
         if (opCode == 0xaa) {
             this.X = this.A;
             this.P.Z = this.X == 0 ? 1 : 0;
@@ -1356,7 +1356,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    tay(opCode: number): void {
+    private tay(opCode: number): void {
         if (opCode == 0xa8) {
             this.Y = this.A;
             this.P.Z = this.Y == 0 ? 1 : 0;
@@ -1368,7 +1368,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    tsx(opCode: number): void {
+    private tsx(opCode: number): void {
         if (opCode == 0xba) {
             this.X = this.SP;
             this.P.Z = this.X == 0 ? 1 : 0;
@@ -1379,7 +1379,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    txa(opCode: number): void {
+    private txa(opCode: number): void {
         if (opCode == 0x8a) {
             this.A = this.X;
             this.P.Z = this.A == 0 ? 1 : 0;
@@ -1390,7 +1390,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    txs(opCode: number): void {
+    private txs(opCode: number): void {
         if (opCode == 0x9a) {
             this.SP = this.X;
             this.Cycles += 2;
@@ -1399,7 +1399,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    tya(opCode: number): void {
+    private tya(opCode: number): void {
         if (opCode == 0x98) {
             this.A = this.Y;
             this.P.Z = this.A == 0 ? 1 : 0;
@@ -1410,7 +1410,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    unofficial_nop(opCode: number): void {
+    private unofficial_nop(opCode: number): void {
         if (opCode == 0x80) {
             this.immediateAddressing();
             this.Cycles += 2;
@@ -1442,7 +1442,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    unofficial_lax(opCode: number): void {
+    private unofficial_lax(opCode: number): void {
         let tmpCycle: number = this.Cycles;
 
         if (opCode == 0xa3) {
@@ -1479,7 +1479,7 @@ class CPU6502 implements ICPU6502 {
         this.Cycles = tmpCycle;
     }
 
-    unofficial_sax(opCode: number): void {
+    private unofficial_sax(opCode: number): void {
         let addr: number;
         if (opCode == 0x83) {
             addr = this.indexedIndirectAddressing();
@@ -1500,7 +1500,7 @@ class CPU6502 implements ICPU6502 {
         this.m_CPUBus.writeByte(addr, this.A & this.X);
     }
 
-    unofficial_sbc(opCode: number): void {
+    private unofficial_sbc(opCode: number): void {
         if (opCode == 0xeb) {
             this.sbc(0xe9);
         } else {
@@ -1508,7 +1508,7 @@ class CPU6502 implements ICPU6502 {
         }
     }
 
-    unofficial_dcp(opCode: number): void {
+    private unofficial_dcp(opCode: number): void {
         let addr: number;
         let tmpCycle: number = this.Cycles;
         if (opCode == 0xc3) {
@@ -1553,7 +1553,7 @@ class CPU6502 implements ICPU6502 {
         this.Cycles = tmpCycle;
     }
 
-    unofficial_isc_isb(opCode: number): void {
+    private unofficial_isc_isb(opCode: number): void {
         let addr: number;
         let tmpCycle: number = this.Cycles;
 
@@ -1603,7 +1603,7 @@ class CPU6502 implements ICPU6502 {
         this.Cycles = tmpCycle;
     }
 
-    unofficial_slo(opCode: number): void {
+    private unofficial_slo(opCode: number): void {
         let addr: number;
         let tmpCycle: number = this.Cycles;
 
@@ -1653,7 +1653,7 @@ class CPU6502 implements ICPU6502 {
         this.Cycles = tmpCycle;
     }
 
-    unofficial_rla(opCode: number): void {
+    private unofficial_rla(opCode: number): void {
         let addr: number;
         let tmpCycle: number = this.Cycles;
 
@@ -1706,7 +1706,7 @@ class CPU6502 implements ICPU6502 {
         this.Cycles = tmpCycle;
     }
 
-    unofficial_sre(opCode: number): void {
+    private unofficial_sre(opCode: number): void {
         let addr: number;
         let tmpCycle: number = this.Cycles;
 
@@ -1755,7 +1755,7 @@ class CPU6502 implements ICPU6502 {
         this.Cycles = tmpCycle;
     }
 
-    unofficial_rra(opCode: number): void {
+    private unofficial_rra(opCode: number): void {
         let addr: number;
         let tmpCycle: number = this.Cycles;
 
@@ -1817,7 +1817,7 @@ class CPU6502 implements ICPU6502 {
      * immediate寻址
      * @returns
      */
-    immediateAddressing(): number {
+    private immediateAddressing(): number {
         return this.PC++;
     }
 
@@ -1825,7 +1825,7 @@ class CPU6502 implements ICPU6502 {
      * 零页寻址
      * @returns
      */
-    zeroPageAddressing(): number {
+    private zeroPageAddressing(): number {
         const addr: number = this.m_CPUBus.readByte(this.PC++);
         return addr & 0xff;
     }
@@ -1834,7 +1834,7 @@ class CPU6502 implements ICPU6502 {
      * 零页X寻址
      * @returns
      */
-    zeroPageXAddressing(): number {
+    private zeroPageXAddressing(): number {
         const addr: number = this.m_CPUBus.readByte(this.PC++);
         return (addr + this.X) & 0xff;
     }
@@ -1843,7 +1843,7 @@ class CPU6502 implements ICPU6502 {
      * 零页Y寻址
      * @returns
      */
-    zeroPageYAddressing(): number {
+    private zeroPageYAddressing(): number {
         const addr: number = this.m_CPUBus.readByte(this.PC++);
         return (addr + this.Y) & 0xff;
     }
@@ -1852,7 +1852,7 @@ class CPU6502 implements ICPU6502 {
      * 绝对地址寻址
      * @returns
      */
-    absoluteAddressing(): number {
+    private absoluteAddressing(): number {
         const addr: number = this.readUInt16(this.PC);
         this.PC += 2;
         return addr;
@@ -1862,7 +1862,7 @@ class CPU6502 implements ICPU6502 {
      * 绝对地址X寻址
      * @returns
      */
-    absoluteXAddressing(): { addr: number; isCrossPage: boolean } {
+    private absoluteXAddressing(): { addr: number; isCrossPage: boolean } {
         const addr: number = this.readUInt16(this.PC);
         this.PC += 2;
         const newAddr: number = NumberUtils.toUInt16(addr + this.X);
@@ -1876,7 +1876,7 @@ class CPU6502 implements ICPU6502 {
      * 绝对地址Y寻址
      * @returns
      */
-    absoluteYAddressing(): { addr: number; isCrossPage: boolean } {
+    private absoluteYAddressing(): { addr: number; isCrossPage: boolean } {
         const addr: number = this.readUInt16(this.PC);
         this.PC += 2;
         const newAddr: number = NumberUtils.toUInt16(addr + this.Y);
@@ -1890,7 +1890,7 @@ class CPU6502 implements ICPU6502 {
      * 相对寻址
      * @returns
      */
-    relativeAddressing(): number {
+    private relativeAddressing(): number {
         return this.m_CPUBus.readByte(this.PC++);
     }
 
@@ -1898,7 +1898,7 @@ class CPU6502 implements ICPU6502 {
      * 间接寻址
      * @returns
      */
-    indirectAddressing(): number {
+    private indirectAddressing(): number {
         const addr: number = this.readUInt16(this.PC);
         this.PC += 2;
 
@@ -1917,7 +1917,7 @@ class CPU6502 implements ICPU6502 {
      * 间接X寻址
      * @returns
      */
-    indexedIndirectAddressing(): number {
+    private indexedIndirectAddressing(): number {
         const offset: number = this.m_CPUBus.readByte(this.PC++);
         const addr: number = NumberUtils.toUInt8(offset + this.X);
         if ((addr & 0xff) == 0xff) {
@@ -1934,7 +1934,7 @@ class CPU6502 implements ICPU6502 {
     /**
      * 间接Y寻址
      */
-    indirectIndexedAddressing(): { addr: number; isCrossPage: boolean } {
+    private indirectIndexedAddressing(): { addr: number; isCrossPage: boolean } {
         const oldAddr = this.PC;
         let addr: number = this.m_CPUBus.readByte(this.PC++);
         if ((addr & 0xff) == 0xff) {
@@ -1953,13 +1953,13 @@ class CPU6502 implements ICPU6502 {
         };
     }
 
-    readUInt16(addr: number): number {
+    private readUInt16(addr: number): number {
         const low: number = this.m_CPUBus.readByte(addr);
         const high: number = this.m_CPUBus.readByte(NumberUtils.toUInt16(addr + 1));
         return NumberUtils.toUInt16((high << 8) | low);
     }
 
-    isCrossPage(oldAddr: number, newAddr: number): boolean {
+    private isCrossPage(oldAddr: number, newAddr: number): boolean {
         return (oldAddr & 0xff00) != (newAddr & 0xff00);
     }
 
@@ -1967,7 +1967,7 @@ class CPU6502 implements ICPU6502 {
      * 推入一个字节到堆栈顶
      * @param data
      */
-    push(data: number): void {
+    private push(data: number): void {
         const addr = NumberUtils.toUInt16(0x100 + this.SP);
         this.m_CPUBus.writeByte(addr, NumberUtils.toUInt8(data));
         this.SP--;
@@ -1976,7 +1976,7 @@ class CPU6502 implements ICPU6502 {
     /**
      * 从堆栈顶取出数据并出栈
      */
-    pop(): number {
+    private pop(): number {
         this.SP++;
         const addr = NumberUtils.toUInt16(0x100 + this.SP);
         return this.m_CPUBus.readByte(addr);
@@ -1987,7 +1987,7 @@ class CPU6502 implements ICPU6502 {
      * @param dataArray
      * @returns true表示有溢出，false表示无溢出
      */
-    checkAddOverflowPresent(...dataArray: number[]): boolean {
+    private checkAddOverflowPresent(...dataArray: number[]): boolean {
         if (!dataArray || dataArray.length == 0) {
             return false;
         }
@@ -2008,7 +2008,7 @@ class CPU6502 implements ICPU6502 {
      * @param dataArray
      * @returns true表示有溢出，false表示无溢出
      */
-    checkSubOverflowPresent(...dataArray: number[]): boolean {
+    private checkSubOverflowPresent(...dataArray: number[]): boolean {
         if (!dataArray || dataArray.length == 0) {
             return false;
         }

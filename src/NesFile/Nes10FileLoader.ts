@@ -5,7 +5,7 @@ import MirroringMode from "../Common/MirroringMode";
 import Cartridge from "../Cartridge/Cartridge";
 
 export default class Nes10FileLoader implements IFileLoader {
-    load(data: Uint8Array): ICartridge {
+    public load(data: Uint8Array): ICartridge {
         /**
          * nes1.0文件组成
            header+trainer+PRG rom+CHR rom

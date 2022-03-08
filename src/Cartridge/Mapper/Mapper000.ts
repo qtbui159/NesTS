@@ -6,21 +6,21 @@ export default class Mapper000 implements IMapper {
     private m_PRGRom: Uint8Array;
     private m_CHRRom: Uint8Array;
 
-    get version(): number {
+    public get version(): number {
         return 0;
     }
 
-    constructor(prgRam: Uint8Array, prgRom: Uint8Array, chrRom: Uint8Array) {
+    public constructor(prgRam: Uint8Array, prgRom: Uint8Array, chrRom: Uint8Array) {
         this.m_PRGRam = prgRam;
         this.m_PRGRom = prgRom;
         this.m_CHRRom = chrRom;
     }
 
-    writeByte(addr: number, data: number): void {
+    public writeByte(addr: number, data: number): void {
         throw new Error("Not support Operation");
     }
 
-    readByte(addr: number): number {
+    public readByte(addr: number): number {
         if (addr < 0x2000) {
             //PPU总线使用
             return this.m_CHRRom[addr];

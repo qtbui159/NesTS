@@ -1,3 +1,3 @@
 import IReadWrite from "../Common/IReadWrite";
 
-export default interface IRAM extends IReadWrite {}
+export default interface IRam extends IReadWrite {}
