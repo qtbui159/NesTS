@@ -1,21 +1,33 @@
 import NumberUtils from "../Utils/NumberUtils";
 
 class ShiftRegister {
+    /**
+     * 2个字节
+     */
     public get tileHighByte(): number {
         return this.m_TileHighByte;
     }
     private m_TileHighByte: number = 0;
 
+    /**
+     * 2个字节
+     */
     public get tileLowByte(): number {
-        return this.m_tileLowByte;
+        return this.m_TileLowByte;
     }
-    private m_tileLowByte: number = 0;
+    private m_TileLowByte: number = 0;
 
+    /**
+     * 2个字节
+     */
     public get AttributeHighByte(): number {
         return this.m_AttributeHighByte;
     }
     private m_AttributeHighByte: number = 0;
 
+    /**
+     * 2个字节
+     */
     public get AttributeLowByte(): number {
         return this.m_AttributeLowByte;
     }
@@ -26,9 +38,25 @@ class ShiftRegister {
      */
     public leftMove(): void {
         this.m_TileHighByte = NumberUtils.toUInt16(this.m_TileHighByte << 1);
-        this.m_tileLowByte = NumberUtils.toUInt16(this.m_tileLowByte << 1);
+        this.m_TileLowByte = NumberUtils.toUInt16(this.m_TileLowByte << 1);
         this.m_AttributeHighByte = NumberUtils.toUInt16(this.m_AttributeHighByte << 1);
         this.m_AttributeLowByte = NumberUtils.toUInt16(this.m_AttributeLowByte << 1);
+    }
+
+    public fillTileHighByte(data: number): void {
+        this.m_TileHighByte |= NumberUtils.toUInt8(data);
+    }
+
+    public fillTileLowByte(data: number): void {
+        this.m_TileLowByte |= NumberUtils.toUInt8(data);
+    }
+
+    public fillAttributeHighByte(data: number): void {
+        this.m_AttributeHighByte |= NumberUtils.toUInt8(data);
+    }
+
+    public fillAttributeLowByte(data: number): void {
+        this.m_AttributeLowByte |= NumberUtils.toUInt8(data);
     }
 }
 

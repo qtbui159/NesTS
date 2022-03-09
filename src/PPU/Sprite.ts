@@ -9,6 +9,10 @@ class Sprite {
         return this.m_Index == 0;
     }
 
+    public get data(): Uint8Array {
+        return this.m_Data;
+    }
+
     /**
      *
      * @param index 索引0-63
