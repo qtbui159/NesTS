@@ -10,7 +10,6 @@ import Latch from "./Latch";
 import IPPUBus from "../Bus/IPPUBus";
 import BitUtils from "../Utils/BitUtils";
 import NumberUtils from "../Utils/NumberUtils";
-import RGB from "../Common/RGB";
 
 //参考资料：
 //1*)https://wiki.nesdev.org/w/index.php?title=PPU_power_up_state
@@ -50,6 +49,8 @@ class PPU2C02 implements IPPU2C02 {
      */
     private m_EvenFrame: boolean;
     private m_Sprite0Hits: boolean;
+    private m_SpriteData: (SpriteColor | null)[];
+    private m_Frame: number[][];
 
     public constructor(ppuBus: IPPUBus) {
         this.Ctrl = new CtrlRegister();
@@ -73,6 +74,11 @@ class PPU2C02 implements IPPU2C02 {
         this.m_Cycle = 0;
         this.m_EvenFrame = true;
         this.m_Sprite0Hits = false;
+        this.m_SpriteData = new Array(256);
+        this.m_Frame = new Array(240);
+        for (let i = 0; i < 240; ++i) {
+            this.m_Frame[i] = new Array(256);
+        }
     }
 
     public ticktock(): void {
@@ -120,9 +126,9 @@ class PPU2C02 implements IPPU2C02 {
                 this.resetSecondOAM();
             }
 
-            this.fillLatch();
-            //renderPixel
             this.shiftRegisterLeftMove();
+            this.renderPixel(this.m_Cycle - 1, this.m_Scanline);
+            this.fillLatch();
 
             if (this.m_Cycle == 65) {
                 this.calculateSprite();
@@ -133,14 +139,130 @@ class PPU2C02 implements IPPU2C02 {
         } else if (this.m_Cycle == 257) {
             this.copyTxToVx();
             this.fetchNextLineSpritePixel();
+        } else if (this.m_Cycle >= 258 && this.m_Cycle <= 320) {
+            //idle
+        } else if (this.m_Cycle >= 321 && this.m_Cycle <= 336) {
+            this.shiftRegisterLeftMove();
+            this.fillLatch();
+        } else if (this.m_Cycle <= 340) {
+            //NT byte， Unused NTfetches
+        } else {
+            throw new Error(`unknown cycles ${this.m_Cycle}`);
         }
     }
 
-    private handlePostRenderScanline(): void {}
+    private handlePostRenderScanline(): void {
+        //idle
+    }
 
-    private handleVBlank(): void {}
+    private handleVBlank(): void {
+        if (this.m_Scanline != 241) {
+            return;
+        }
 
-    private handlePreRenderScanline() {}
+        if (this.m_Cycle == 1) {
+            this.Status.V = 1;
+        } else if (this.m_Cycle == 16 && this.Ctrl.V == 1 && this.Status.V == 1) {
+            //nmi中断
+        }
+    }
+
+    private handlePreRenderScanline() {
+        if (this.Mask.b == 0 && this.Mask.s == 0) {
+            return;
+        }
+
+        if (this.m_Cycle == 0) {
+            //idle
+        } else if (this.m_Cycle >= 1 && this.m_Cycle <= 256) {
+            if (this.m_Cycle == 1) {
+                this.Status.updateValue(0);
+                this.resetSecondOAM();
+            }
+
+            this.shiftRegisterLeftMove();
+            this.fillLatch();
+
+            if (this.m_Cycle == 65) {
+                this.calculateSprite();
+            }
+            if (this.m_Cycle == 256) {
+                this.increaseY();
+            }
+        } else if (this.m_Cycle == 257) {
+            this.copyTxToVx();
+            this.fetchNextLineSpritePixel();
+        } else if (this.m_Cycle >= 258 && this.m_Cycle <= 320) {
+            if (this.m_Cycle >= 280 && this.m_Cycle <= 305) {
+                this.V.updateBit(BitUtils.get(this.T.value, 5), 5);
+                this.V.updateBit(BitUtils.get(this.T.value, 6), 6);
+                this.V.updateBit(BitUtils.get(this.T.value, 7), 7);
+                this.V.updateBit(BitUtils.get(this.T.value, 8), 8);
+                this.V.updateBit(BitUtils.get(this.T.value, 9), 9);
+
+                this.V.updateBit(BitUtils.get(this.T.value, 11), 11);
+                this.V.updateBit(BitUtils.get(this.T.value, 12), 12);
+                this.V.updateBit(BitUtils.get(this.T.value, 13), 13);
+                this.V.updateBit(BitUtils.get(this.T.value, 14), 14);
+            }
+        } else if (this.m_Cycle >= 321 && this.m_Cycle <= 336) {
+            this.shiftRegisterLeftMove();
+            this.fetchNextLineSpritePixel();
+        } else if (this.m_Cycle <= 340) {
+            //NT byte， Unused NTfetches
+        } else {
+            throw new Error(`unknown cycles ${this.m_Cycle}`);
+        }
+    }
+
+    private renderPixel(x: number, y: number): void {
+        const paletteBit3: number = BitUtils.get(this.m_ShiftRegister.attributeHighByte, 15 - this.fineXScroll);
+        const paletteBit2: number = BitUtils.get(this.m_ShiftRegister.attributeLowByte, 15 - this.fineXScroll);
+        const paletteBit1: number = BitUtils.get(this.m_ShiftRegister.tileHighByte, 15 - this.fineXScroll);
+        const paletteBit0: number = BitUtils.get(this.m_ShiftRegister.tileLowByte, 15 - this.fineXScroll);
+        const backgroundPaletteAddressIndex: number = (paletteBit3 << 3) | (paletteBit2 << 2) | (paletteBit1 << 1) | paletteBit0;
+        const spriteColor: SpriteColor | null = this.m_SpriteData[x];
+
+        if (spriteColor != null) {
+            //因为有镜像关系，所以能被4整除的其实都是透明色
+            const isTransparent: boolean = spriteColor.paletteAddressIndex % 4 == 0;
+
+            if (spriteColor.isFrontOfBackground) {
+                //背景前
+                //如果精灵不透明显示精灵色，透明则显示背景色
+
+                if (isTransparent) {
+                    this.m_Frame[y][x] = this.fetchBackgroundPaletteIndexByAddress(backgroundPaletteAddressIndex);
+                } else {
+                    this.m_Frame[y][x] = this.fetchSpritePaletteIndexByAddress(spriteColor.paletteAddressIndex);
+                }
+            } else {
+                //背景后
+                //如果精灵透明则显示背景色
+                //如果精灵不透明，1.如果背景透明则显示不透明的精灵色
+                //               2.如果背景不透明则显示背景色
+
+                if (isTransparent) {
+                    this.m_Frame[y][x] = this.fetchBackgroundPaletteIndexByAddress(backgroundPaletteAddressIndex);
+                } else {
+                    if (backgroundPaletteAddressIndex == 0) {
+                        this.m_Frame[y][x] = this.fetchSpritePaletteIndexByAddress(spriteColor.paletteAddressIndex);
+                    } else {
+                        this.m_Frame[y][x] = this.fetchBackgroundPaletteIndexByAddress(backgroundPaletteAddressIndex);
+                    }
+                }
+            }
+
+            if (!this.m_Sprite0Hits && spriteColor.isZero) {
+                if (backgroundPaletteAddressIndex != 0 && !isTransparent) {
+                    this.m_Sprite0Hits = true;
+                    this.Status.S = 1;
+                }
+            }
+        } else {
+            this.m_Frame[y][x] = this.fetchBackgroundPaletteIndexByAddress(backgroundPaletteAddressIndex);
+        }
+    }
 
     private resetSecondOAM(): void {
         if (this.Mask.s == 0) {
@@ -263,6 +385,8 @@ class PPU2C02 implements IPPU2C02 {
             return;
         }
 
+        this.m_SpriteData.fill(null);
+
         if (this.Ctrl.H == 0) {
             //8x8的精灵
 
@@ -305,7 +429,8 @@ class PPU2C02 implements IPPU2C02 {
                         bit1 = BitUtils.get(highPatternData, j);
                     }
 
-                    const paletteIndex: number = highPalette | (bit1 << 1) | bit0;
+                    const paletteAddressIndex: number = highPalette | (bit1 << 1) | bit0;
+                    this.m_SpriteData[x + 7 - j] = new SpriteColor(paletteAddressIndex, frontOfBackground, sprite.isZero);
                 }
             }
         } else {
@@ -378,16 +503,37 @@ class PPU2C02 implements IPPU2C02 {
         return Direction.rightBottom;
     }
 
+    /**
+     * 通过背景调色板地址取得调色板索引
+     * @param addr
+     * @returns
+     */
+    private fetchBackgroundPaletteIndexByAddress(addr: number): number {
+        const offset: number = 0x3000 + addr;
+        return this.m_PPUBus.readByte(offset);
+    }
+
+    /**
+     * 通过精灵调色板地址取得调色板索引
+     * @param addr
+     * @returns
+     */
+    private fetchSpritePaletteIndexByAddress(addr: number): number {
+        const offset: number = 0x3010 + addr;
+        return this.m_PPUBus.readByte(offset);
+    }
+
     public switchNameTableMirroring(mode: MirroringMode): void {
         this.m_MirroringMode = mode;
     }
 
     public writeByte(addr: number, data: number): void {
-        throw new Error("Method not implemented.");
+        this.m_PPUBus.writeByte(addr, data);
     }
 
     public readByte(addr: number): number {
-        throw new Error("Method not implemented.");
+        const data: number = this.m_PPUBus.readByte(addr);
+        return data;
     }
 }
 
@@ -396,6 +542,39 @@ enum Direction {
     leftBottom,
     rightTop,
     rightBottom,
+}
+
+class SpriteColor {
+    private m_PaletteAddressIndex: number;
+    private m_IsFrontOfBackground: boolean;
+    private m_IsZero: boolean;
+
+    /**
+     * 调色板索引
+     */
+    public get paletteAddressIndex(): number {
+        return this.m_PaletteAddressIndex;
+    }
+
+    /**
+     * 是否在背景前
+     */
+    public get isFrontOfBackground(): boolean {
+        return this.m_IsFrontOfBackground;
+    }
+
+    /**
+     * 是否是归属于精灵0的
+     */
+    public get isZero(): boolean {
+        return this.m_IsZero;
+    }
+
+    public constructor(paletteAddressIndex: number, isFrontOfBackground: boolean, isZero: boolean) {
+        this.m_PaletteAddressIndex = paletteAddressIndex;
+        this.m_IsFrontOfBackground = isFrontOfBackground;
+        this.m_IsZero = isZero;
+    }
 }
 
 export default PPU2C02;

@@ -20,7 +20,7 @@ class ShiftRegister {
     /**
      * 2个字节
      */
-    public get AttributeHighByte(): number {
+    public get attributeHighByte(): number {
         return this.m_AttributeHighByte;
     }
     private m_AttributeHighByte: number = 0;
@@ -28,7 +28,7 @@ class ShiftRegister {
     /**
      * 2个字节
      */
-    public get AttributeLowByte(): number {
+    public get attributeLowByte(): number {
         return this.m_AttributeLowByte;
     }
     private m_AttributeLowByte: number = 0;
