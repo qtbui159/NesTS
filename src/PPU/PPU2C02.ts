@@ -51,8 +51,9 @@ class PPU2C02 implements IPPU2C02 {
     private m_Sprite0Hits: boolean;
     private m_SpriteData: (SpriteColor | null)[];
     private m_Frame: number[][];
+    private m_NmiInterrupt: VoidFunction;
 
-    public constructor(ppuBus: IPPUBus) {
+    public constructor(ppuBus: IPPUBus, nmiInterrupt: VoidFunction) {
         this.Ctrl = new CtrlRegister();
         this.Mask = new MaskRegister();
         this.Status = new StatusRegister();
@@ -76,6 +77,7 @@ class PPU2C02 implements IPPU2C02 {
         this.m_Sprite0Hits = false;
         this.m_SpriteData = new Array(256);
         this.m_Frame = new Array(240);
+        this.m_NmiInterrupt = nmiInterrupt;
         for (let i = 0; i < 240; ++i) {
             this.m_Frame[i] = new Array(256);
         }
@@ -164,6 +166,7 @@ class PPU2C02 implements IPPU2C02 {
             this.Status.V = 1;
         } else if (this.m_Cycle == 16 && this.Ctrl.V == 1 && this.Status.V == 1) {
             //nmi中断
+            this.m_NmiInterrupt();
         }
     }
 

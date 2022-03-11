@@ -16,10 +16,10 @@ abstract class RegisterBase {
 
     /**
      * 更新位数据
-     * @param pos 位置
      * @param _1or0 1或者0
+     * @param pos 位置
      */
-    public updateBit(pos: number, _1or0: number) {
+    public updateBit(_1or0: number, pos: number) {
         let currentValue = this.m_Value;
         if (_1or0) {
             currentValue = BitUtils.set(currentValue, pos);

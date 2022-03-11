@@ -36,7 +36,7 @@ class Nes implements INes {
 
         //ppu部分
         this.m_PPUBus = new PPUBus();
-        this.m_PPU2C02 = new PPU2C02(this.m_PPUBus);
+        this.m_PPU2C02 = new PPU2C02(this.m_PPUBus, this.m_CPU6502.nmi.bind(this.m_CPU6502));
         this.m_VRam = new VRam();
         this.m_Palette = new Palette();
 
@@ -45,6 +45,8 @@ class Nes implements INes {
 
         //总线连接
         this.m_CPUBus.connectRAM(this.m_RAM);
+        this.m_CPUBus.connectPPU2C02(this.m_PPU2C02);
+        this.m_CPUBus.setDMACycleFunction(this.m_CPU6502.dmaCycle.bind(this.m_CPU6502));
         this.m_PPUBus.connectVRam(this.m_VRam);
         this.m_PPUBus.connectPalette(this.m_Palette);
     }
@@ -61,7 +63,7 @@ class Nes implements INes {
         this.m_CPU6502.reset();
 
         while (true) {
-            this.m_CPU6502.ticktock();
+            this.m_CPU6502.ticktockFlatCycle();
             this.m_PPU2C02.ticktock();
             this.m_PPU2C02.ticktock();
             this.m_PPU2C02.ticktock();

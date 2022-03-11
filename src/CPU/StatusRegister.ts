@@ -10,7 +10,7 @@ class StatusRegister extends RegisterBase {
     }
 
     public set C(value: number) {
-        this.updateBit(0, value);
+        this.updateBit(value, 0);
     }
 
     /**
@@ -21,7 +21,7 @@ class StatusRegister extends RegisterBase {
     }
 
     public set Z(value: number) {
-        this.updateBit(1, value);
+        this.updateBit(value, 1);
     }
 
     /**
@@ -32,7 +32,7 @@ class StatusRegister extends RegisterBase {
     }
 
     public set I(value: number) {
-        this.updateBit(2, value);
+        this.updateBit(value, 2);
     }
 
     /**
@@ -43,7 +43,7 @@ class StatusRegister extends RegisterBase {
     }
 
     public set D(value: number) {
-        this.updateBit(3, value);
+        this.updateBit(value, 3);
     }
 
     /**
@@ -54,7 +54,7 @@ class StatusRegister extends RegisterBase {
     }
 
     public set B(value: number) {
-        this.updateBit(4, value);
+        this.updateBit(value, 4);
     }
 
     /**
@@ -65,7 +65,7 @@ class StatusRegister extends RegisterBase {
     }
 
     public set O(value: number) {
-        this.updateBit(6, value);
+        this.updateBit(value, 6);
     }
 
     /**
@@ -76,7 +76,7 @@ class StatusRegister extends RegisterBase {
     }
 
     public set N(value: number) {
-        this.updateBit(7, value);
+        this.updateBit(value, 7);
     }
 
     public constructor() {

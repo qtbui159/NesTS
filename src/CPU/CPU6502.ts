@@ -146,6 +146,21 @@ class CPU6502 implements ICPU6502 {
         opFunction!(opCode);
     }
 
+    public ticktockFlatCycle(): void {
+        if (this.Cycles == 0) {
+            this.ticktock();
+        } else {
+            this.Cycles--;
+        }
+    }
+
+    public dmaCycle(): void {
+        if (this.Cycles % 2 == 0) {
+            this.Cycles++;
+        }
+        this.Cycles += 513;
+    }
+
     public reset(): void {
         const resetAddr: number = 0xfffc;
         this.PC = this.readUInt16(resetAddr);

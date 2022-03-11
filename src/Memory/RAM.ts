@@ -9,6 +9,16 @@ export default class Ram implements IRam {
         this.m_Data = new Uint8Array(this.m_RAMSize);
     }
 
+    public readBlock(startAddr: number, endAddr: number): Uint8Array {
+        startAddr = this.getRealAddr(startAddr);
+        endAddr = this.getRealAddr(endAddr);
+        const r: Uint8Array = new Uint8Array(endAddr - startAddr);
+        for (let i = startAddr; i < endAddr; ++i) {
+            r[i - startAddr] = this.m_Data[i];
+        }
+        return r;
+    }
+
     public writeByte(addr: number, data: number): void {
         const realAddr: number = this.getRealAddr(addr);
         this.m_Data[realAddr] = data;
