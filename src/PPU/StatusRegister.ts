@@ -23,7 +23,7 @@ export default class StatusRegister extends RegisterBase {
     }
 
     public set O(value: number) {
-        this.updateBit(5, value);
+        this.updateBit(value, 5);
     }
 
     /**
@@ -38,7 +38,7 @@ export default class StatusRegister extends RegisterBase {
     }
 
     public set S(value: number) {
-        this.updateBit(6, value);
+        this.updateBit(value, 6);
     }
 
     /**
@@ -54,6 +54,6 @@ export default class StatusRegister extends RegisterBase {
     }
 
     public set V(value: number) {
-        this.updateBit(7, value);
+        this.updateBit(value, 7);
     }
 }

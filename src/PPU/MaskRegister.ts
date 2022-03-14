@@ -11,7 +11,7 @@ export default class MASKRegister extends RegisterBase {
     }
 
     public set Gray(value: number) {
-        this.updateBit(0, value);
+        this.updateBit(value, 0);
     }
 
     /**
@@ -23,7 +23,7 @@ export default class MASKRegister extends RegisterBase {
     }
 
     public set m(value: number) {
-        this.updateBit(1, value);
+        this.updateBit(value, 1);
     }
 
     /**
@@ -35,7 +35,7 @@ export default class MASKRegister extends RegisterBase {
     }
 
     public set M(value: number) {
-        this.updateBit(2, value);
+        this.updateBit(value, 2);
     }
 
     /**
@@ -47,7 +47,7 @@ export default class MASKRegister extends RegisterBase {
     }
 
     public set b(value: number) {
-        this.updateBit(3, value);
+        this.updateBit(value, 3);
     }
 
     /**
@@ -59,7 +59,7 @@ export default class MASKRegister extends RegisterBase {
     }
 
     public set s(value: number) {
-        this.updateBit(4, value);
+        this.updateBit(value, 4);
     }
 
     /**
@@ -70,7 +70,7 @@ export default class MASKRegister extends RegisterBase {
     }
 
     public set R(value: number) {
-        this.updateBit(5, value);
+        this.updateBit(value, 5);
     }
 
     /**
@@ -81,7 +81,7 @@ export default class MASKRegister extends RegisterBase {
     }
 
     public set G(value: number) {
-        this.updateBit(6, value);
+        this.updateBit(value, 6);
     }
 
     /**
@@ -92,6 +92,6 @@ export default class MASKRegister extends RegisterBase {
     }
 
     public set B(value: number) {
-        this.updateBit(7, value);
+        this.updateBit(value, 7);
     }
 }

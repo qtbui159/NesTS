@@ -10,7 +10,7 @@ export default class CtrlRegister extends RegisterBase {
     }
 
     public set NLow(value: number) {
-        this.updateBit(0, value);
+        this.updateBit(value, 0);
     }
 
     /**
@@ -21,7 +21,7 @@ export default class CtrlRegister extends RegisterBase {
     }
 
     public set NHigh(value: number) {
-        this.updateBit(1, value);
+        this.updateBit(value, 1);
     }
 
     /**
@@ -33,7 +33,7 @@ export default class CtrlRegister extends RegisterBase {
     }
 
     public set I(value: number) {
-        this.updateBit(2, value);
+        this.updateBit(value, 2);
     }
 
     /**
@@ -45,7 +45,7 @@ export default class CtrlRegister extends RegisterBase {
     }
 
     public set S(value: number) {
-        this.updateBit(3, value);
+        this.updateBit(value, 3);
     }
 
     /**
@@ -57,7 +57,7 @@ export default class CtrlRegister extends RegisterBase {
     }
 
     public set B(value: number) {
-        this.updateBit(4, value);
+        this.updateBit(value, 4);
     }
 
     /**
@@ -69,7 +69,7 @@ export default class CtrlRegister extends RegisterBase {
     }
 
     public set H(value: number) {
-        this.updateBit(5, value);
+        this.updateBit(value, 5);
     }
 
     /**
@@ -81,7 +81,7 @@ export default class CtrlRegister extends RegisterBase {
     }
 
     public set P(value: number) {
-        this.updateBit(6, value);
+        this.updateBit(value, 6);
     }
 
     /**
@@ -93,6 +93,6 @@ export default class CtrlRegister extends RegisterBase {
     }
 
     public set V(value: number) {
-        this.updateBit(7, value);
+        this.updateBit(value, 7);
     }
 }

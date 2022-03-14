@@ -1,7 +1,7 @@
 import INes from "./INes";
 import ICartridge from "./Cartridge/ICartridge";
 import IRam from "./Memory/IRam";
-import RAM from "./Memory/Ram";
+import Ram from "./Memory/Ram";
 import ICPUBus from "./Bus/ICPUBus";
 import CPUBus from "./Bus/CPUBus";
 import ICPU6502 from "./CPU/ICPU6502";
@@ -19,7 +19,7 @@ import Palette from "./PPU/Palette";
 class Nes implements INes {
     private m_Cartridge: ICartridge;
 
-    private m_RAM: IRam;
+    private m_Ram: IRam;
     private m_CPUBus: ICPUBus;
     private m_CPU6502: ICPU6502;
 
@@ -30,7 +30,7 @@ class Nes implements INes {
 
     public constructor() {
         //cpu部分
-        this.m_RAM = new RAM();
+        this.m_Ram = new Ram();
         this.m_CPUBus = new CPUBus();
         this.m_CPU6502 = new CPU6502(this.m_CPUBus);
 
@@ -44,7 +44,7 @@ class Nes implements INes {
         this.m_Cartridge = {} as any;
 
         //总线连接
-        this.m_CPUBus.connectRAM(this.m_RAM);
+        this.m_CPUBus.connectRAM(this.m_Ram);
         this.m_CPUBus.connectPPU2C02(this.m_PPU2C02);
         this.m_CPUBus.setDMACycleFunction(this.m_CPU6502.dmaCycle.bind(this.m_CPU6502));
         this.m_PPUBus.connectVRam(this.m_VRam);
