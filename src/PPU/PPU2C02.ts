@@ -10,6 +10,7 @@ import Latch from "./Latch";
 import IPPUBus from "../Bus/IPPUBus";
 import BitUtils from "../Utils/BitUtils";
 import NumberUtils from "../Utils/NumberUtils";
+import IRenderAction from "../Common/IRenderAction";
 
 //参考资料：
 //1*)https://wiki.nesdev.org/w/index.php?title=PPU_power_up_state
@@ -53,6 +54,8 @@ class PPU2C02 implements IPPU2C02 {
     private m_Frame: number[][];
     private m_NmiInterrupt: VoidFunction;
 
+    private m_Render: IRenderAction | null;
+
     public constructor(ppuBus: IPPUBus, nmiInterrupt: VoidFunction) {
         this.Ctrl = new CtrlRegister();
         this.Mask = new MaskRegister();
@@ -81,6 +84,12 @@ class PPU2C02 implements IPPU2C02 {
         for (let i = 0; i < 240; ++i) {
             this.m_Frame[i] = new Array(256);
         }
+
+        this.m_Render = null;
+    }
+
+    public setRenderCallback(render: IRenderAction): void {
+        this.m_Render = render;
     }
 
     public ticktock(): void {
@@ -103,6 +112,8 @@ class PPU2C02 implements IPPU2C02 {
         }
 
         if (this.m_Scanline > 261) {
+            this.render();
+
             //所有扫描线都执行完毕，到下一帧了
             this.m_Scanline = 0;
             this.m_Cycle = 0;
@@ -512,7 +523,7 @@ class PPU2C02 implements IPPU2C02 {
      * @returns
      */
     private fetchBackgroundPaletteIndexByAddress(addr: number): number {
-        const offset: number = 0x3000 + addr;
+        const offset: number = 0x3f00 + addr;
         return this.m_PPUBus.readByte(offset);
     }
 
@@ -522,7 +533,7 @@ class PPU2C02 implements IPPU2C02 {
      * @returns
      */
     private fetchSpritePaletteIndexByAddress(addr: number): number {
-        const offset: number = 0x3010 + addr;
+        const offset: number = 0x3f10 + addr;
         return this.m_PPUBus.readByte(offset);
     }
 
@@ -537,6 +548,15 @@ class PPU2C02 implements IPPU2C02 {
     public readByte(addr: number): number {
         const data: number = this.m_PPUBus.readByte(addr);
         return data;
+    }
+
+    private render(): void {
+        if (this.m_Render == null) {
+            return;
+        }
+
+        const result: number[] = this.m_Frame.flat();
+        this.m_Render(result);
     }
 }
 

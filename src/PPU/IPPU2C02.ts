@@ -4,6 +4,7 @@ import MaskRegister from "./MaskRegister";
 import StatusRegister from "./StatusRegister";
 import VRamRegister from "./VRamRegister";
 import CtrlRegister from "./CtrlRegister";
+import IRenderAction from "../Common/IRenderAction";
 
 export default interface IPPU2C02 extends IReadWrite {
     Ctrl: CtrlRegister;
@@ -49,4 +50,10 @@ export default interface IPPU2C02 extends IReadWrite {
      * @param mode 映射规则
      */
     switchNameTableMirroring(mode: MirroringMode): void;
+
+    /**
+     * 绘制回调
+     * @param render
+     */
+    setRenderCallback(render: IRenderAction): void;
 }

@@ -11,15 +11,15 @@ export default class JoyStick implements IJoyStick {
     private m_Offset: number = 0;
 
     private m_Value: number = 0;
-    get value(): number {
+    public get value(): number {
         return BitUtils.get(this.m_Value, this.m_Offset--);
     }
 
-    clearOffset(): void {
+    public clearOffset(): void {
         this.m_Offset = 7;
     }
 
-    sendKey(key: JoyStickKey, pressDown: boolean): void {
+    public sendKey(key: JoyStickKey, pressDown: boolean): void {
         let pos: number = -1;
         if (key == JoyStickKey.a) {
             pos = 7;

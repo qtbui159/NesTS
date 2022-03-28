@@ -15,6 +15,12 @@ import PPUBus from "./Bus/PPUBus";
 import VRam from "./Memory/VRam";
 import IPalette from "./PPU/IPalette";
 import Palette from "./PPU/Palette";
+import MiscUtils from "./Utils/MiscUtils";
+import IRenderAction from "./Common/IRenderAction";
+import RGB from "./Common/RGB";
+import JoyStickKey from "./Common/JoyStickKey";
+import IJoyStick from "./JoyStick/IJoyStick";
+import JoyStick from "./JoyStick/JoyStick";
 
 class Nes implements INes {
     private m_Cartridge: ICartridge;
@@ -27,6 +33,11 @@ class Nes implements INes {
     private m_PPUBus: IPPUBus;
     private m_VRam: IRam;
     private m_Palette: IPalette;
+
+    private m_P1JoyStick: IJoyStick;
+    private m_P2JoyStick: IJoyStick;
+
+    private m_ShouldSleep: boolean;
 
     public constructor() {
         //cpu部分
@@ -43,12 +54,36 @@ class Nes implements INes {
         //卡带
         this.m_Cartridge = {} as any;
 
+        //手柄
+        this.m_P1JoyStick = new JoyStick();
+        this.m_P2JoyStick = new JoyStick();
+
         //总线连接
         this.m_CPUBus.connectRAM(this.m_Ram);
         this.m_CPUBus.connectPPU2C02(this.m_PPU2C02);
         this.m_CPUBus.setDMACycleFunction(this.m_CPU6502.dmaCycle.bind(this.m_CPU6502));
+        this.m_CPUBus.connectJoyStick(this.m_P1JoyStick, this.m_P2JoyStick);
         this.m_PPUBus.connectVRam(this.m_VRam);
         this.m_PPUBus.connectPalette(this.m_Palette);
+
+        this.m_ShouldSleep = false;
+    }
+
+    public setRenderCallback(render: IRenderAction): void {
+        this.m_PPU2C02.setRenderCallback((rgbIndex: number[]) => {
+            const result: number[] = new Array(rgbIndex.length * 3);
+            let j: number = 0;
+
+            for (let i = 0, count = rgbIndex.length; i < count; ++i) {
+                const rgb: RGB = this.m_Palette.indexToRGB(rgbIndex[i]);
+                result[j++] = rgb.R;
+                result[j++] = rgb.G;
+                result[j++] = rgb.B;
+            }
+
+            render(result);
+            this.m_ShouldSleep = true;
+        });
     }
 
     public insertCartridge(data: Uint8Array): void {
@@ -59,7 +94,7 @@ class Nes implements INes {
         this.m_PPUBus.connectCartridge(this.m_Cartridge);
     }
 
-    public powerUp(): void {
+    public async powerUp(): Promise<void> {
         this.m_CPU6502.reset();
 
         while (true) {
@@ -67,7 +102,20 @@ class Nes implements INes {
             this.m_PPU2C02.ticktock();
             this.m_PPU2C02.ticktock();
             this.m_PPU2C02.ticktock();
+
+            if (this.m_ShouldSleep) {
+                this.m_ShouldSleep = false;
+                await MiscUtils.sleepAsync(10);
+            }
         }
+    }
+
+    public p1SendKey(key: JoyStickKey, pressDown: boolean): void {
+        this.m_P1JoyStick.sendKey(key, pressDown);
+    }
+
+    public p2SendKey(key: JoyStickKey, pressDown: boolean): void {
+        this.m_P2JoyStick.sendKey(key, pressDown);
     }
 }
 

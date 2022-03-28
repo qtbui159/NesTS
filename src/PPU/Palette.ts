@@ -1,7 +1,7 @@
 import RGB from "../Common/RGB";
 import IPalette from "./IPalette";
 
-export default class Palette implements IPalette {
+class Palette implements IPalette {
     private readonly m_RGB: RGB[] = [];
     /**
      * 存储的都是index，真正的颜色需要用indexToRGB方法取倒
@@ -39,7 +39,7 @@ export default class Palette implements IPalette {
     }
 
     private getReadRealAddr(addr: number): number {
-        let realAddr: number = addr & 0x3f1f;   
+        let realAddr: number = addr & 0x3f1f;
         if (realAddr == 0x3f10 || realAddr == 0x3f14 || realAddr == 0x3f18 || realAddr == 0x3f1c) {
             realAddr -= 0x10;
         }
@@ -61,3 +61,5 @@ export default class Palette implements IPalette {
         return this.m_RGB[index];
     }
 }
+
+export default Palette;
