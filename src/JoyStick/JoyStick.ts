@@ -42,9 +42,9 @@ export default class JoyStick implements IJoyStick {
         }
 
         if (pressDown) {
-            BitUtils.set(this.m_Value, pos);
+            this.m_Value = BitUtils.set(this.m_Value, pos);
         } else {
-            BitUtils.clear(this.m_Value, pos);
+            this.m_Value = BitUtils.clear(this.m_Value, pos);
         }
     }
 }
