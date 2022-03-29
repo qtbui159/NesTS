@@ -105,7 +105,7 @@ class Nes implements INes {
 
             if (this.m_ShouldSleep) {
                 this.m_ShouldSleep = false;
-                await MiscUtils.sleepAsync(10);
+                await MiscUtils.sleepAsync(0);
             }
         }
     }

@@ -221,7 +221,7 @@ class PPU2C02 implements IPPU2C02 {
             }
         } else if (this.m_Cycle >= 321 && this.m_Cycle <= 336) {
             this.shiftRegisterLeftMove();
-            this.fetchNextLineSpritePixel();
+            this.fillLatch();
         } else if (this.m_Cycle <= 340) {
             //NT byte， Unused NTfetches
         } else {
@@ -350,7 +350,7 @@ class PPU2C02 implements IPPU2C02 {
             return;
         }
 
-        let key: number = this.m_Cycle % 8;
+        const key: number = this.m_Cycle % 8;
         if (key == 0) {
             this.increaseX();
         } else if (key == 1) {
